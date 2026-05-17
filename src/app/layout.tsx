@@ -61,6 +61,10 @@ export const viewport: Viewport = {
   themeColor: '#0284c7',
 }
 
+export const icons = {
+  icon: '/favicon.svg',
+}
+
 export default function RootLayout({
   children,
 }: {
