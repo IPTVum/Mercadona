@@ -1,9 +1,11 @@
 'use client'
 
 import { Share2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
 export default function ShareButton({ title }: { title: string }) {
+  const t = useTranslations('share')
   const handleShare = async () => {
     try {
       if (navigator.share) {
@@ -13,12 +15,12 @@ export default function ShareButton({ title }: { title: string }) {
         })
       } else {
         await navigator.clipboard.writeText(window.location.href)
-        toast.success('Link copied to clipboard')
+        toast.success(t('copied'))
       }
     } catch {
       try {
         await navigator.clipboard.writeText(window.location.href)
-        toast.success('Link copied to clipboard')
+        toast.success(t('copied'))
       } catch {
         toast.error('Could not copy link')
       }

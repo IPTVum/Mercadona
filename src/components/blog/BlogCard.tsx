@@ -1,8 +1,11 @@
-import Link from 'next/link'
+'use client'
+
 import SafeImage from '@/components/ui/SafeImage'
 import { formatDate } from '@/lib/utils'
 import { Calendar, ArrowRight } from 'lucide-react'
 import type { Blog } from '@/types'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 
 interface BlogCardProps {
   blog: Blog
@@ -10,6 +13,8 @@ interface BlogCardProps {
 }
 
 export default function BlogCard({ blog, featured }: BlogCardProps) {
+  const t = useTranslations('common')
+
   if (featured) {
     return (
       <Link href={`/blog/${blog.slug}`} className="group block md:row-span-2">
@@ -104,7 +109,7 @@ export default function BlogCard({ blog, featured }: BlogCardProps) {
               <span>{blog.published_at ? formatDate(blog.published_at) : ''}</span>
             </div>
             <span className="text-xs font-medium text-primary-600 group-hover:text-primary-700 flex items-center gap-1 transition-colors">
-              Read more <ArrowRight size={12} />
+              {t('readMore')} <ArrowRight size={12} />
             </span>
           </div>
         </div>

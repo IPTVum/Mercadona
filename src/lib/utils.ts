@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatPrice(price: number, currency: string = 'MAD'): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatPrice(price: number, currency: string = 'MAD', locale?: string): string {
+  return new Intl.NumberFormat(locale || 'en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: currency === 'MAD' ? 2 : 2,
@@ -59,24 +59,33 @@ export function formatConvertedPrice(price: number, fromCurrency: string, toCurr
   return formatPrice(converted, toCurrency)
 }
 
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
+export function formatDate(date: string | Date, locale?: string): string {
+  return new Intl.DateTimeFormat(locale || 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(new Date(date))
 }
 
-export function formatRelativeDate(date: string | Date): string {
+const RELATIVE_TIME_MESSAGES: Record<string, { justNow: string; minutesAgo: string; hoursAgo: string; daysAgo: string }> = {
+  en: { justNow: 'just now', minutesAgo: '{n}m ago', hoursAgo: '{n}h ago', daysAgo: '{n}d ago' },
+  fr: { justNow: "à l'instant", minutesAgo: 'il y a {n} min', hoursAgo: 'il y a {n} h', daysAgo: 'il y a {n} j' },
+  ar: { justNow: 'الآن', minutesAgo: 'قبل {n} د', hoursAgo: 'قبل {n} س', daysAgo: 'قبل {n} ي' },
+}
+
+export function formatRelativeDate(date: string | Date, locale?: string): string {
   const now = new Date()
   const then = new Date(date)
   const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000)
 
-  if (diffInSeconds < 60) return 'just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
-  return formatDate(date)
+  const lang = (locale || 'en').split('-')[0]
+  const msgs = RELATIVE_TIME_MESSAGES[lang] || RELATIVE_TIME_MESSAGES.en
+
+  if (diffInSeconds < 60) return msgs.justNow
+  if (diffInSeconds < 3600) return msgs.minutesAgo.replace('{n}', String(Math.floor(diffInSeconds / 60)))
+  if (diffInSeconds < 86400) return msgs.hoursAgo.replace('{n}', String(Math.floor(diffInSeconds / 3600)))
+  if (diffInSeconds < 604800) return msgs.daysAgo.replace('{n}', String(Math.floor(diffInSeconds / 86400)))
+  return formatDate(date, locale)
 }
 
 export function slugify(text: string): string {
@@ -92,8 +101,37 @@ export function truncate(str: string, length: number): string {
   return str.slice(0, length) + '...'
 }
 
-export function getWhatsAppMessage(productName: string, productPrice: number, quantity: number = 1): string {
-  const message = `Hello! I'd like to order:\n\nProduct: ${productName}\nQuantity: ${quantity}\nPrice: $${productPrice}\nTotal: $${productPrice * quantity}\n\nPlease confirm my order.`
+const WHATSAPP_TEMPLATES: Record<string, { greeting: string; product: string; quantity: string; price: string; total: string; confirm: string }> = {
+  en: {
+    greeting: "Hello! I'd like to order:",
+    product: 'Product',
+    quantity: 'Quantity',
+    price: 'Price',
+    total: 'Total',
+    confirm: 'Please confirm my order.',
+  },
+  fr: {
+    greeting: 'Bonjour ! Je souhaite commander :',
+    product: 'Produit',
+    quantity: 'Quantité',
+    price: 'Prix',
+    total: 'Total',
+    confirm: 'Veuillez confirmer ma commande.',
+  },
+  ar: {
+    greeting: 'مرحبًا! أرغب في طلب:',
+    product: 'المنتج',
+    quantity: 'الكمية',
+    price: 'السعر',
+    total: 'المجموع',
+    confirm: 'يرجى تأكيد طلبي.',
+  },
+}
+
+export function getWhatsAppMessage(productName: string, productPrice: number, quantity: number = 1, locale?: string): string {
+  const lang = (locale || 'en').split('-')[0]
+  const m = WHATSAPP_TEMPLATES[lang] || WHATSAPP_TEMPLATES.en
+  const message = `${m.greeting}\n\n${m.product}: ${productName}\n${m.quantity}: ${quantity}\n${m.price}: $${productPrice}\n${m.total}: $${productPrice * quantity}\n\n${m.confirm}`
   return encodeURIComponent(message)
 }
 

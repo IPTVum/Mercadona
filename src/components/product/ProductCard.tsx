@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+
 import SafeImage from '@/components/ui/SafeImage'
 import { ShoppingCart, Heart, Eye, MessageCircle } from 'lucide-react'
 import { formatPrice, calculateDiscount, getWhatsAppUrl, getWhatsAppMessage } from '@/lib/utils'
@@ -8,13 +8,16 @@ import type { Product } from '@/types'
 import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
 import { useHasMounted } from '@/lib/useHasMounted'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { Link } from '@/i18n/routing'
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const t = useTranslations('product')
   const { addItem } = useCart()
   const { toggleItem, isInWishlist } = useWishlist()
   const discount = calculateDiscount(product.price, product.compare_price)
@@ -79,12 +82,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
           {!product.is_active && (
             <span className="bg-gray-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
-              Out of Stock
+              {t('outOfStock')}
             </span>
           )}
           {product.is_active && product.stock !== null && product.stock <= 5 && product.stock > 0 && (
             <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
-              Only {product.stock} left
+              {t('lowStock', { count: product.stock })}
             </span>
           )}
         </div>
@@ -97,7 +100,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               ? 'bg-red-500 text-white'
               : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
           }`}
-          title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          title={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
         >
           <Heart size={16} className={isWishlisted ? 'fill-white' : ''} />
         </button>
@@ -138,7 +141,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ShoppingCart size={16} />
-          {inStock ? 'Add to Cart' : 'Sold Out'}
+          {inStock ? t('addToCart') : t('outOfStock')}
         </button>
         <div className="flex items-center gap-2">
           <Link
@@ -146,7 +149,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-primary-500 hover:text-primary-600 transition-colors"
           >
             <Eye size={14} />
-            Details
+            {t('details')}
           </Link>
           <button
             onClick={handleWishlist}
@@ -155,7 +158,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 ? 'border-red-500 text-red-500 bg-red-50'
                 : 'border-gray-200 text-gray-500 hover:border-red-500 hover:text-red-500'
             }`}
-            title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+            title={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
           >
             <Heart size={16} className={isWishlisted ? 'fill-red-500' : ''} />
           </button>
@@ -170,7 +173,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="flex items-center justify-center gap-1.5 text-xs font-medium text-[#25D366] hover:text-[#20BD5A] transition-colors py-1"
         >
           <MessageCircle size={14} />
-          Order via WhatsApp
+          {t('whatsapp')}
         </a>
       </div>
     </div>

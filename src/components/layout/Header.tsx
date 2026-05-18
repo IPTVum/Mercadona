@@ -1,7 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
@@ -19,8 +17,12 @@ import {
 import { createClient } from '@/lib/supabase'
 import type { Category } from '@/types'
 import { useHasMounted } from '@/lib/useHasMounted'
+import { Link, usePathname, useRouter } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 
 export default function Header() {
+  const t = useTranslations('header')
   const hasMounted = useHasMounted()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
@@ -89,63 +91,64 @@ export default function Header() {
 
   const isActive = (path: string) => pathname === path
 
+  const couponBanner = activeCoupon && (
+    <div className="bg-gradient-to-r from-accent-600 via-primary-600 to-primary-700 text-white py-2">
+      <div className="container-custom flex justify-between items-center text-sm">
+        <p className="flex items-center gap-2">
+          <Sparkles size={16} className="text-yellow-300 animate-pulse" />
+          <span className="font-medium">
+            {activeCoupon.discount_type === 'percentage'
+              ? t('percentOff', { value: activeCoupon.discount_value })
+              : t('amountOff', { value: activeCoupon.discount_value })}
+          </span>
+          <span className="hidden sm:inline">{t('withCode')}</span>
+          <span className="px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded text-xs font-mono font-bold tracking-wider border border-dashed border-white/30">
+            {activeCoupon.code}
+          </span>
+          {activeCoupon.description && (
+            <span className="hidden md:inline text-primary-100">— {activeCoupon.description}</span>
+          )}
+        </p>
+        <div className="hidden md:flex gap-4">
+          <Link href="/shop" className="hover:text-primary-200">{t('shopNow')}</Link>
+          <Link href="/blog" className="hover:text-primary-200">{t('blog')}</Link>
+        </div>
+      </div>
+    </div>
+  )
+
+  const shippingBanner = !activeCoupon && freeShippingMin > 0 && (
+    <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-accent-600 text-white py-2">
+      <div className="container-custom flex justify-between items-center text-sm">
+        <p className="flex items-center gap-2">
+          <Sparkles size={16} className="text-yellow-300" />
+          {t('freeShippingBanner', { amount: freeShippingMin })}
+        </p>
+        <div className="hidden md:flex gap-4">
+          <Link href="/contact" className="hover:text-primary-200">{t('contact')}</Link>
+          <Link href="/blog" className="hover:text-primary-200">{t('blog')}</Link>
+        </div>
+      </div>
+    </div>
+  )
+
+  const defaultBanner = !activeCoupon && freeShippingMin <= 0 && (
+    <div className="bg-gray-900 text-gray-300 py-2">
+      <div className="container-custom flex justify-between items-center text-sm">
+        <p>{t('welcomeBanner', { name: siteName })}</p>
+        <div className="hidden md:flex gap-4">
+          <Link href="/contact" className="hover:text-white">{t('contact')}</Link>
+          <Link href="/blog" className="hover:text-white">{t('blog')}</Link>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      {/* Top banner */}
-      {hasMounted && settingsLoaded && activeCoupon && (
-        <div className="bg-gradient-to-r from-accent-600 via-primary-600 to-primary-700 text-white py-2">
-          <div className="container-custom flex justify-between items-center text-sm">
-            <p className="flex items-center gap-2">
-              <Sparkles size={16} className="text-yellow-300 animate-pulse" />
-              <span className="font-medium">
-                {activeCoupon.discount_type === 'percentage'
-                  ? `${activeCoupon.discount_value}% OFF`
-                  : `${activeCoupon.discount_value} DH OFF`}
-              </span>
-              <span className="hidden sm:inline">with code</span>
-              <span className="px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded text-xs font-mono font-bold tracking-wider border border-dashed border-white/30">
-                {activeCoupon.code}
-              </span>
-              {activeCoupon.description && (
-                <span className="hidden md:inline text-primary-100">— {activeCoupon.description}</span>
-              )}
-            </p>
-            <div className="hidden md:flex gap-4">
-              <Link href="/shop" className="hover:text-primary-200">Shop Now</Link>
-              <Link href="/blog" className="hover:text-primary-200">Blog</Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {hasMounted && settingsLoaded && !activeCoupon && freeShippingMin > 0 && (
-        <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-accent-600 text-white py-2">
-          <div className="container-custom flex justify-between items-center text-sm">
-            <p className="flex items-center gap-2">
-              <Sparkles size={16} className="text-yellow-300" />
-              Free shipping on orders over {freeShippingMin} DH!
-            </p>
-            <div className="hidden md:flex gap-4">
-              <Link href="/contact" className="hover:text-primary-200">Contact</Link>
-              <Link href="/blog" className="hover:text-primary-200">Blog</Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Default banner when nothing is configured */}
-      {hasMounted && settingsLoaded && !activeCoupon && freeShippingMin <= 0 && (
-        <div className="bg-gray-900 text-gray-300 py-2">
-          <div className="container-custom flex justify-between items-center text-sm">
-            <p>Welcome to {siteName}!</p>
-            <div className="hidden md:flex gap-4">
-              <Link href="/contact" className="hover:text-white">Contact</Link>
-              <Link href="/blog" className="hover:text-white">Blog</Link>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {hasMounted && settingsLoaded && couponBanner}
+      {hasMounted && settingsLoaded && shippingBanner}
+      {hasMounted && settingsLoaded && defaultBanner}
       {hasMounted && !settingsLoaded && (
         <div className="bg-gray-100 py-2">
           <div className="container-custom">
@@ -173,22 +176,21 @@ export default function Header() {
 
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/" className={`font-medium transition-colors ${isActive('/') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'}`}>
-              Home
+              {t('home')}
             </Link>
 
-            {/* Shop Mega Dropdown */}
             <div className="relative group">
               <Link href="/shop" className={`flex items-center gap-1 font-medium transition-colors ${pathname.startsWith('/shop') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'} group-hover:text-primary-600`}>
-                Shop <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
+                {t('shop')} <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
               </Link>
 
               <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[520px] z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Categories</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('categories')}</h3>
                       <Link href="/shop" className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-                        View All <ChevronDown size={12} className="-rotate-90" />
+                        {t('allProducts')} <ChevronDown size={12} className="-rotate-90" />
                       </Link>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -200,8 +202,8 @@ export default function Header() {
                           <Sparkles size={20} className="text-primary-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-primary-700">All Products</p>
-                          <p className="text-xs text-primary-500">Browse everything</p>
+                          <p className="font-medium text-primary-700">{t('allProducts')}</p>
+                          <p className="text-xs text-primary-500">{t('browseEverything')}</p>
                         </div>
                       </Link>
                       {categories.map((cat) => (
@@ -216,7 +218,7 @@ export default function Header() {
                           <div>
                             <p className="font-medium text-gray-900 text-sm group-hover/cat:text-primary-700 transition-colors">{cat.name}</p>
                             <p className="text-xs text-gray-400">
-                              {cat.description ? cat.description.slice(0, 30) + (cat.description.length > 30 ? '...' : '') : 'Shop now'}
+                              {cat.description ? cat.description.slice(0, 30) + (cat.description.length > 30 ? '...' : '') : t('shopNow')}
                             </p>
                           </div>
                         </Link>
@@ -228,14 +230,16 @@ export default function Header() {
             </div>
 
             <Link href="/blog" className={`font-medium transition-colors ${pathname.startsWith('/blog') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'}`}>
-              Blog
+              {t('blog')}
             </Link>
             <Link href="/contact" className={`font-medium transition-colors ${isActive('/contact') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'}`}>
-              Contact
+              {t('contact')}
             </Link>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
+            <LanguageSwitcher />
+
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="p-2 hover:bg-gray-100 rounded-lg hidden sm:block"
@@ -244,8 +248,7 @@ export default function Header() {
               <Search size={20} className="text-gray-700" />
             </button>
 
-            {/* Wishlist with count badge */}
-            <Link href="/wishlist" className="relative p-2 hover:bg-gray-100 rounded-lg hidden sm:block" aria-label="Wishlist">
+            <Link href="/wishlist" className="relative p-2 hover:bg-gray-100 rounded-lg hidden sm:block" aria-label={t('wishlist')}>
               <Heart size={20} className={`text-gray-700 ${wishlistCount > 0 ? 'fill-red-500 text-red-500' : ''}`} />
               {hasMounted && wishlistCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
@@ -254,7 +257,7 @@ export default function Header() {
               )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 hover:bg-gray-100 rounded-lg" aria-label="Cart">
+            <Link href="/cart" className="relative p-2 hover:bg-gray-100 rounded-lg" aria-label={t('cart')}>
               <ShoppingCart size={20} className="text-gray-700" />
               {hasMounted && itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
@@ -262,13 +265,12 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <Link href={user ? '/profile' : '/login'} className="p-2 hover:bg-gray-100 rounded-lg" aria-label={user ? 'Profile' : 'Login'}>
+            <Link href={user ? '/profile' : '/login'} className="p-2 hover:bg-gray-100 rounded-lg" aria-label={user ? t('myAccount') : t('login')}>
               <User size={20} className="text-gray-700" />
             </Link>
           </div>
         </div>
 
-        {/* Search bar */}
         {searchOpen && (
           <form onSubmit={handleSearch} className="pb-4 animate-slide-down">
             <div className="relative">
@@ -276,7 +278,7 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t('searchPlaceholder')}
                 className="input pr-12"
                 autoFocus
               />
@@ -293,10 +295,10 @@ export default function Header() {
         <div id="mobile-menu" className="md:hidden border-t border-gray-200 bg-white animate-slide-down">
           <div className="container-custom py-4 space-y-2">
             <Link href="/" className={`block px-4 py-2 rounded-lg ${isActive('/') ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50'}`} onClick={() => setMobileMenuOpen(false)}>
-              Home
+              {t('home')}
             </Link>
             <Link href="/shop" className={`block px-4 py-2 rounded-lg ${pathname.startsWith('/shop') ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50'}`} onClick={() => setMobileMenuOpen(false)}>
-              All Products
+              {t('allProducts')}
             </Link>
             {categories.map((cat) => (
               <Link
@@ -309,21 +311,21 @@ export default function Header() {
               </Link>
             ))}
             <Link href="/blog" className={`block px-4 py-2 rounded-lg ${pathname.startsWith('/blog') ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50'}`} onClick={() => setMobileMenuOpen(false)}>
-              Blog
+              {t('blog')}
             </Link>
             <Link href="/contact" className={`block px-4 py-2 rounded-lg ${isActive('/contact') ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50'}`} onClick={() => setMobileMenuOpen(false)}>
-              Contact
+              {t('contact')}
             </Link>
             <div className="border-t border-gray-200 pt-2 mt-2">
               <Link href="/wishlist" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-lg" onClick={() => setMobileMenuOpen(false)}>
                 <Heart size={16} />
-                Wishlist
+                {t('wishlist')}
                 {wishlistCount > 0 && (
                   <span className="ml-auto px-2 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">{wishlistCount}</span>
                 )}
               </Link>
               <Link href={user ? '/profile' : '/login'} className="block px-4 py-2 hover:bg-gray-50 rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-                {user ? 'My Account' : 'Login'}
+                {user ? t('myAccount') : t('login')}
               </Link>
             </div>
           </div>

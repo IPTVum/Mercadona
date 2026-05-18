@@ -1,7 +1,25 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
+import { routing } from '@/i18n/routing'
+
+const intlMiddleware = createMiddleware(routing)
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  const isApiRoute = pathname.startsWith('/api/')
+  const isStaticFile =
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/static/') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/favicon.') ||
+    pathname.startsWith('/images/')
+
+  if (isApiRoute || isStaticFile) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -26,15 +44,21 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register')
-  const isProfileRoute = request.nextUrl.pathname.startsWith('/profile')
+  const pathWithoutLocale = pathname.replace(/^\/(en|fr|ar)(\/|$)/, '/$2').replace(/\/$/, '') || '/'
+
+  const isAdminRoute = pathWithoutLocale.startsWith('/admin')
+  const isAuthRoute =
+    pathWithoutLocale === '/login' || pathWithoutLocale === '/register' ||
+    pathWithoutLocale.startsWith('/forgot-password') || pathWithoutLocale.startsWith('/reset-password')
+  const isProfileRoute = pathWithoutLocale.startsWith('/profile')
+  const isCheckoutRoute = pathWithoutLocale.startsWith('/checkout')
+
+  const locale = pathname.match(/^\/(en|fr|ar)/)?.[1] || routing.defaultLocale
 
   if (isAdminRoute) {
     if (!user) {
       const url = request.nextUrl.clone()
-      url.pathname = '/login'
+      url.pathname = `/${locale}/login`
       url.searchParams.set('redirect', request.nextUrl.pathname)
       const redirectResponse = NextResponse.redirect(url)
       supabaseResponse.cookies.getAll().forEach((cookie) => {
@@ -51,7 +75,7 @@ export async function middleware(request: NextRequest) {
 
     if (!profile || profile.role !== 'admin') {
       const url = request.nextUrl.clone()
-      url.pathname = '/'
+      url.pathname = `/${locale}`
       const redirectResponse = NextResponse.redirect(url)
       supabaseResponse.cookies.getAll().forEach((cookie) => {
         redirectResponse.cookies.set(cookie.name, cookie.value)
@@ -62,7 +86,7 @@ export async function middleware(request: NextRequest) {
 
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/profile'
+    url.pathname = `/${locale}/profile`
     const redirectResponse = NextResponse.redirect(url)
     supabaseResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value)
@@ -72,7 +96,7 @@ export async function middleware(request: NextRequest) {
 
   if (isProfileRoute && !user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = `/${locale}/login`
     url.searchParams.set('redirect', request.nextUrl.pathname)
     const redirectResponse = NextResponse.redirect(url)
     supabaseResponse.cookies.getAll().forEach((cookie) => {
@@ -81,15 +105,22 @@ export async function middleware(request: NextRequest) {
     return redirectResponse
   }
 
-  return supabaseResponse
+  if (isCheckoutRoute && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/${locale}/login`
+    url.searchParams.set('redirect', request.nextUrl.pathname)
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    return redirectResponse
+  }
+
+  return intlMiddleware(request)
 }
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/login',
-    '/register',
-    '/profile',
-    '/checkout',
+    '/((?!api|_next|_vercel|static|favicon\\.ico|images|.*\\..*).*)',
   ],
 }

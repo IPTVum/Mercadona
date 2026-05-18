@@ -1,10 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useEffect, useMemo } from 'react'
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Send, ExternalLink } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Send } from 'lucide-react'
+import { Link } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 interface SocialLinks {
   facebook: string
@@ -14,6 +15,7 @@ interface SocialLinks {
 }
 
 export default function Footer() {
+  const t = useTranslations('footer')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
@@ -75,13 +77,13 @@ export default function Footer() {
         .upsert({ email: email.trim() }, { onConflict: 'email' })
 
       if (error) throw error
-      toast.success('Subscribed to newsletter!')
+      toast.success(t('subscribeSuccess'))
       setEmail('')
     } catch (err: any) {
       if (err?.code === '23505') {
-        toast.success('You\'re already subscribed!')
+        toast.success(t('alreadySubscribed'))
       } else {
-        toast.error('Failed to subscribe. Please try again.')
+        toast.error(t('subscribeError'))
       }
     } finally {
       setLoading(false)
@@ -95,11 +97,11 @@ export default function Footer() {
       <div className="container-custom py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-          <Link href="/" className="text-2xl font-display font-bold text-white">
-            {siteName}
-          </Link>
+            <Link href="/" className="text-2xl font-display font-bold text-white">
+              {siteName}
+            </Link>
             <p className="mt-4 text-gray-400">
-              Your one-stop shop for everything you need. Quality products, great prices, and exceptional service.
+              {t('description')}
             </p>
 
             {hasAnySocial && (
@@ -129,30 +131,30 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">{t('quickLinks')}</h3>
             <ul className="space-y-2">
-              <li><Link href="/shop" className="hover:text-white transition-colors">Shop</Link></li>
-              <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link></li>
-              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="/shop" className="hover:text-white transition-colors">{t('shop')}</Link></li>
+              <li><Link href="/blog" className="hover:text-white transition-colors">{t('blog')}</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">{t('contactUs')}</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">{t('terms')}</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">{t('privacy')}</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">{t('faq')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Customer Service</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">{t('customerService')}</h3>
             <ul className="space-y-2">
-              <li><Link href="/profile" className="hover:text-white transition-colors">My Account</Link></li>
-              <li><Link href="/profile?tab=orders" className="hover:text-white transition-colors">Order Tracking</Link></li>
-              <li><Link href="/wishlist" className="hover:text-white transition-colors">Wishlist</Link></li>
-              <li><Link href="/returns" className="hover:text-white transition-colors">Returns & Exchanges</Link></li>
-              <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping Info</Link></li>
+              <li><Link href="/profile" className="hover:text-white transition-colors">{t('myAccount')}</Link></li>
+              <li><Link href="/profile?tab=orders" className="hover:text-white transition-colors">{t('orderTracking')}</Link></li>
+              <li><Link href="/wishlist" className="hover:text-white transition-colors">{t('wishlist')}</Link></li>
+              <li><Link href="/returns" className="hover:text-white transition-colors">{t('returns')}</Link></li>
+              <li><Link href="/shipping" className="hover:text-white transition-colors">{t('shipping')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Contact Info</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">{t('contactInfo')}</h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <MapPin size={20} className="mt-0.5 text-primary-400 flex-shrink-0" />
@@ -168,11 +170,11 @@ export default function Footer() {
               </li>
             </ul>
             <div className="mt-6">
-              <h4 className="text-white font-medium mb-2">Newsletter</h4>
+              <h4 className="text-white font-medium mb-2">{t('newsletter')}</h4>
               <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
                 <input
                   type="email"
-                  placeholder="Your email"
+                  placeholder={t('newsletterPlaceholder')}
                   className="flex-1 px-3 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-white text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -194,10 +196,10 @@ export default function Footer() {
       <div className="border-t border-gray-800">
         <div className="container-custom py-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
+            {t('copyright', { year: new Date().getFullYear(), name: siteName })}
           </p>
           <div className="flex gap-4 items-center">
-            <span className="text-gray-400 text-sm">We accept:</span>
+            <span className="text-gray-400 text-sm">{t('weAccept')}</span>
             <span className="text-gray-500 text-xs">Visa</span>
             <span className="text-gray-500 text-xs">Mastercard</span>
             <span className="text-gray-500 text-xs">PayPal</span>

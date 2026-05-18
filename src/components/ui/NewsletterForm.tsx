@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Send } from 'lucide-react'
 
 export default function NewsletterForm() {
+  const t = useTranslations('newsletter')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -34,7 +36,7 @@ export default function NewsletterForm() {
     <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
       <input
         type="email"
-        placeholder="Enter your email"
+        placeholder={t('placeholder')}
         required
         className="flex-1 px-4 py-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-white"
         value={email}
@@ -45,7 +47,7 @@ export default function NewsletterForm() {
         disabled={loading}
         className="px-6 py-3 bg-primary-600 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center gap-2 justify-center"
       >
-        {loading ? 'Sending...' : <><Send size={16} /> Subscribe</>}
+        {loading ? t('loading') : <><Send size={16} /> {t('subscribe')}</>}
       </button>
     </form>
   )

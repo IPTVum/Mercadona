@@ -5,6 +5,7 @@ import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
 import { useHasMounted } from '@/lib/useHasMounted'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
 interface ProductActionsProps {
@@ -22,6 +23,7 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({ product, discount, whatsappUrl }: ProductActionsProps) {
+  const t = useTranslations('product')
   const hasMounted = useHasMounted()
   const { addItem } = useCart()
   const { toggleItem, isInWishlist } = useWishlist()
@@ -56,7 +58,7 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
   const handleToggleWishlist = () => {
     const isNowInWishlist = isInWishlist(product.id)
     toggleItem(wishlistItem)
-    toast.success(isNowInWishlist ? 'Removed from wishlist' : 'Added to wishlist')
+    toast.success(isNowInWishlist ? t('removeFromWishlist') : t('addToWishlist'))
   }
 
   const handleShare = async () => {
@@ -68,9 +70,9 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
     } catch {
       try {
         await navigator.clipboard.writeText(window.location.href)
-        toast.success('Link copied to clipboard')
+        toast.success(t('linkCopied'))
       } catch {
-        toast.error('Could not copy link')
+        toast.error(t('copyLink'))
       }
     }
   }
@@ -80,7 +82,7 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
       {/* Quantity Selector */}
       {inStock && (
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">Quantity:</span>
+          <span className="text-sm font-medium text-gray-700">{t('quantity')}:</span>
           <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -111,7 +113,7 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
           className="flex-1 btn-primary text-base py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ShoppingCart size={20} />
-          {inStock ? 'Add to Cart' : 'Out of Stock'}
+          {inStock ? t('addToCart') : t('outOfStock')}
         </button>
         <button
           onClick={handleToggleWishlist}
@@ -120,14 +122,14 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
               ? 'border-red-500 text-red-500 bg-red-50'
               : 'border-gray-200 text-gray-600 hover:border-primary-500 hover:text-primary-600'
           }`}
-          title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          title={inWishlist ? t('removeFromWishlist') : t('addToWishlist')}
         >
           <Heart size={20} className={inWishlist ? 'fill-red-500' : ''} />
         </button>
         <button
           onClick={handleShare}
           className="px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-all duration-200"
-          title="Share"
+          title={t('shareProduct')}
         >
           <Share2 size={20} />
         </button>
@@ -141,7 +143,7 @@ export default function ProductActions({ product, discount, whatsappUrl }: Produ
         className="w-full btn-whatsapp justify-center gap-2 py-3 text-base"
       >
         <MessageCircle size={20} />
-        Order via WhatsApp
+        {t('whatsapp')}
       </a>
     </div>
   )

@@ -1,8 +1,11 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 
 export default function SortSelect() {
+  const t = useTranslations('shop')
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentSort = searchParams.get('sort') || 'newest'
@@ -19,10 +22,10 @@ export default function SortSelect() {
       value={currentSort}
       onChange={handleChange}
     >
-      <option value="newest">Newest</option>
-      <option value="price_asc">Price: Low to High</option>
-      <option value="price_desc">Price: High to Low</option>
-      <option value="name_asc">Name: A-Z</option>
+      <option value="newest">{t('sort.newest')}</option>
+      <option value="price_asc">{t('sort.priceLowHigh')}</option>
+      <option value="price_desc">{t('sort.priceHighLow')}</option>
+      <option value="name_asc">{t('sort.nameAZ')}</option>
     </select>
   )
 }
