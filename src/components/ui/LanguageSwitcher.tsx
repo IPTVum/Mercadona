@@ -6,8 +6,8 @@ import { useLocale } from 'next-intl'
 import { Globe } from 'lucide-react'
 
 const languages = [
-  { code: 'ar', label: 'العربية', flag: '🇲🇦' },
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'ar', label: 'العربية', flag: '🇲🇦' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
 ] as const
 

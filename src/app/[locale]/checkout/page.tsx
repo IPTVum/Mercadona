@@ -28,7 +28,7 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'US',
+    country: 'MA',
     notes: '',
   })
 
@@ -268,6 +268,7 @@ export default function CheckoutPage() {
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 >
+                  <option value="MA">{t('countryList.MA')}</option>
                   <option value="US">{t('countryList.US')}</option>
                   <option value="CA">{t('countryList.CA')}</option>
                   <option value="UK">{t('countryList.UK')}</option>
