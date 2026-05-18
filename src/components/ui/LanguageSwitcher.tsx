@@ -6,9 +6,9 @@ import { useLocale } from 'next-intl'
 import { Globe } from 'lucide-react'
 
 const languages = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ar', label: 'العربية', flag: '🇲🇦' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
 ] as const
 
 export default function LanguageSwitcher() {
