@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import { createServerClientSSR } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 import { getTranslations } from 'next-intl/server'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,15 +26,17 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  await requireAdmin()
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar />
-      <main className="flex-1 p-6 md:p-8 md:ml-0 min-w-0">
+      <main className="flex-1 p-4 pt-20 md:p-8 md:pt-8 min-w-0 overflow-x-hidden">
         {children}
       </main>
     </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createServerClientSSR } from '@/lib/supabase-server'
 import { convertCurrency } from '@/lib/utils'
+import { rateLimit } from '@/lib/rate-limit'
 
 async function getStripeSecretKey(): Promise<string> {
   const supabase = await createServerClientSSR()
@@ -14,6 +15,10 @@ async function getStripeSecretKey(): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const limited = rateLimit(ip)
+  if (limited) return limited
+
   try {
     const supabase = await createServerClientSSR()
 
@@ -58,7 +63,7 @@ export async function POST(req: NextRequest) {
     }
 
     const stripe = new Stripe(secretKey, {
-      apiVersion: '2023-10-16' as any,
+      apiVersion: '2023-10-16',
     })
 
     const lineItems = orderItems.map((item: any) => ({

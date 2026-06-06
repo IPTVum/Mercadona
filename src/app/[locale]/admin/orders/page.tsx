@@ -200,55 +200,57 @@ export default function AdminOrdersPage() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('table.orderId')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('table.customer')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('created_at')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('table.orderId')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('table.customer')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 hidden sm:table-cell" onClick={() => handleSort('created_at')}>
                   <span className="inline-flex items-center gap-1">{t('table.date')} {getSortIcon('created_at')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('total')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('total')}>
                   <span className="inline-flex items-center gap-1">{t('table.total')} {getSortIcon('total')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('status')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('status')}>
                   <span className="inline-flex items-center gap-1">{t('table.status')} {getSortIcon('status')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('payment_status')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('payment_status')}>
                   <span className="inline-flex items-center gap-1">{t('table.payment')} {getSortIcon('payment_status')}</span>
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('table.actions')}</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filtered.map((order) => (
                 <React.Fragment key={order.id}>
                   <tr className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium">#{order.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-medium">{(order as any).profiles?.full_name || t('guest')}</p>
-                      <p className="text-sm text-gray-500">{order.email}</p>
+                    <td className="px-4 py-4 font-medium whitespace-nowrap">#{order.id.slice(0, 8)}</td>
+                    <td className="px-4 py-4 min-w-0 max-w-[180px]">
+                      <p className="font-medium truncate">{(order as any).profiles?.full_name || t('guest')}</p>
+                      <p className="text-sm text-gray-500 truncate">{order.email}</p>
                     </td>
-                    <td className="px-6 py-4 text-sm">{formatDate(order.created_at)}</td>
-                    <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 text-sm whitespace-nowrap hidden sm:table-cell">{formatDate(order.created_at)}</td>
+                    <td className="px-4 py-4 font-bold whitespace-nowrap">{formatPrice(order.total)}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <select
-                        className={`badge border-0 cursor-pointer ${statusColors[order.status] || ''}`}
+                        className={`text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer max-w-[130px] truncate appearance-none ${statusColors[order.status] || ''}`}
                         value={order.status}
+                        title={t(`status.${order.status}`)}
                         onChange={(e) => updateStatus(order.id, 'status', e.target.value)}
                         disabled={updating === order.id}
                       >
                         {ORDER_STATUSES.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
                       </select>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <select
-                        className={`badge border-0 cursor-pointer ${paymentColors[order.payment_status] || ''}`}
+                        className={`text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer max-w-[130px] truncate appearance-none ${paymentColors[order.payment_status] || ''}`}
                         value={order.payment_status}
+                        title={t(`paymentStatus.${order.payment_status}`)}
                         onChange={(e) => updateStatus(order.id, 'payment_status', e.target.value)}
                         disabled={updating === order.id}
                       >
                         {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{t(`paymentStatus.${s}`)}</option>)}
                       </select>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-4 text-right whitespace-nowrap">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => printInvoice(order)} className="p-2 hover:bg-gray-100 rounded-lg" title={t('printInvoice')}>
                           <Printer size={16} />

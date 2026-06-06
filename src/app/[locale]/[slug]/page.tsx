@@ -201,7 +201,7 @@ export default async function StaticPage({ params }: StaticPageProps) {
   const translatedContent = t(`${params.slug}.content` as keyof typeof defaultContent)
 
   const title = page?.title || translatedTitle || defaultPage?.title || ''
-  const description = page?.description || defaultPage?.description || ''
+  const description = page?.meta_description || defaultPage?.description || ''
   const rawContent = page?.content || translatedContent || defaultPage?.content || ''
   const content = sanitizeHtml(rawContent)
   const Icon = pageIcons[params.slug] || FileText

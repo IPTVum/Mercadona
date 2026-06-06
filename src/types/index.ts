@@ -216,3 +216,24 @@ export interface Page {
   created_at: string
   updated_at: string
 }
+
+export interface LandingPage {
+  id: string
+  slug: string
+  title_en: string
+  title_fr: string
+  headline_en: string
+  headline_fr: string
+  description_en: string
+  description_fr: string
+  features_en: string | null
+  features_fr: string | null
+  cta_text_en: string
+  cta_text_fr: string
+  cta_url: string
+  image_url: string | null
+  bg_color: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}

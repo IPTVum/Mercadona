@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClientSSR } from '@/lib/supabase-server'
 import { convertCurrency } from '@/lib/utils'
+import { rateLimit } from '@/lib/rate-limit'
 
 async function getPayPalCredentials(): Promise<{ clientId: string; clientSecret: string; mode: string }> {
   const supabase = await createServerClientSSR()
@@ -22,6 +23,10 @@ async function getPayPalCredentials(): Promise<{ clientId: string; clientSecret:
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const limited = rateLimit(ip)
+  if (limited) return limited
+
   try {
     const supabase = await createServerClientSSR()
 

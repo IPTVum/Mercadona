@@ -17,6 +17,7 @@ export default function ContactPage() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [contactInfo, setContactInfo] = useState({
     email: 'hello@webstore.com',
     phone: '+1 (234) 567-890',
@@ -46,6 +47,20 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = t('nameRequired')
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('emailInvalid')
+    if (!formData.subject.trim()) newErrors.subject = t('subjectRequired')
+    if (!formData.message.trim() || formData.message.trim().length < 10) newErrors.message = t('messageTooShort')
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      toast.error(t('fillAllFields'))
+      return
+    }
+
+    setErrors({})
     setLoading(true)
 
     try {
@@ -92,59 +107,63 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="contact-name" className="label">{t('name')} *</label>
+                    <label htmlFor="contact-name" className={`label ${errors.name ? 'text-red-600' : ''}`}>{t('name')} *</label>
                     <input
                       id="contact-name"
                       name="name"
                       type="text"
                       required
                       autoComplete="name"
-                      className="input"
+                      className={`input ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder={t('namePlaceholder')}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
+                    {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                   </div>
                   <div>
-                    <label htmlFor="contact-email" className="label">{t('email')} *</label>
+                    <label htmlFor="contact-email" className={`label ${errors.email ? 'text-red-600' : ''}`}>{t('email')} *</label>
                     <input
                       id="contact-email"
                       name="email"
                       type="email"
                       required
                       autoComplete="email"
-                      className="input"
+                      className={`input ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder={t('emailPlaceholder')}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
+                    {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="contact-subject" className="label">{t('subject')} *</label>
+                  <label htmlFor="contact-subject" className={`label ${errors.subject ? 'text-red-600' : ''}`}>{t('subject')} *</label>
                   <input
                     id="contact-subject"
                     name="subject"
                     type="text"
                     required
-                    className="input"
+                    className={`input ${errors.subject ? 'border-red-500 focus:ring-red-500' : ''}`}
                     placeholder={t('subjectPlaceholder')}
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   />
+                  {errors.subject && <p className="text-red-600 text-sm mt-1">{errors.subject}</p>}
                 </div>
                 <div>
-                  <label htmlFor="contact-message" className="label">{t('message')} *</label>
+                  <label htmlFor="contact-message" className={`label ${errors.message ? 'text-red-600' : ''}`}>{t('message')} *</label>
                   <textarea
                     id="contact-message"
                     name="message"
                     required
                     rows={6}
-                    className="input"
+                    className={`input ${errors.message ? 'border-red-500 focus:ring-red-500' : ''}`}
                     placeholder={t('messagePlaceholder')}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   />
+                  {errors.message && <p className="text-red-600 text-sm mt-1">{errors.message}</p>}
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary">
                   <Send size={20} />

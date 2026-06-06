@@ -1,5 +1,6 @@
 
 import { createServerClientSSR } from '@/lib/supabase-server'
+import { cleanupStaleOrders } from '@/lib/order-cleanup'
 import { getTranslations } from 'next-intl/server'
 import {
   Package,
@@ -50,6 +51,8 @@ async function getStats() {
 }
 
 export default async function AdminDashboard() {
+  cleanupStaleOrders().catch(() => {})
+
   const t = await getTranslations('admin.dashboard')
   const stats = await getStats()
 

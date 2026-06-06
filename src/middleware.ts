@@ -3,8 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 
-const intlMiddleware = createMiddleware({ ...routing, localeDetection: false })
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -116,7 +114,25 @@ export async function middleware(request: NextRequest) {
     return redirectResponse
   }
 
-  return intlMiddleware(request)
+  let defaultLocale = routing.defaultLocale
+  try {
+    const { data: langSetting } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'default_language')
+      .maybeSingle()
+    if (langSetting?.value && routing.locales.includes(langSetting.value as any)) {
+      defaultLocale = langSetting.value as typeof routing.defaultLocale
+    }
+  } catch {}
+
+  const dynamicIntlMiddleware = createMiddleware({
+    ...routing,
+    defaultLocale,
+    localeDetection: false,
+  })
+
+  return dynamicIntlMiddleware(request)
 }
 
 export const config = {

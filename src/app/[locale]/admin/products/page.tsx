@@ -341,50 +341,50 @@ function ProductsContent() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('name')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('name')}>
                   <span className="inline-flex items-center gap-1">{t('table.product')} {getSortIcon('name')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('table.category')}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('price')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">{t('table.category')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('price')}>
                   <span className="inline-flex items-center gap-1">{t('table.price')} {getSortIcon('price')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('stock')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('stock')}>
                   <span className="inline-flex items-center gap-1">{t('table.stock')} {getSortIcon('stock')}</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('is_active')}>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100" onClick={() => handleSort('is_active')}>
                   <span className="inline-flex items-center gap-1">{t('table.status')} {getSortIcon('is_active')}</span>
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('table.actions')}</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {sorted.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-3 max-w-xs">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                         {product.images?.[0] ? <img src={product.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>}
                       </div>
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.sku || t('table.noSku')}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{product.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{product.sku || t('table.noSku')}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm">{(product as any).categories?.name || '-'}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 text-sm hidden md:table-cell">{(product as any).categories?.name || '-'}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <span className="font-medium">{formatPrice(product.price)}</span>
                     {product.compare_price && product.compare_price > product.price && (
                       <span className="ml-2 text-sm text-gray-500 line-through">{formatPrice(product.compare_price)}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <span className={`text-sm ${product.stock != null && product.stock <= 5 ? 'text-red-600' : ''}`}>{product.stock ?? 0}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <span className={`badge ${product.is_active ? 'badge-success' : 'badge-danger'}`}>{product.is_active ? tc('active') : tc('inactive')}</span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 py-4 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-2">
                       <Link href={`/product/${product.slug}`} target="_blank" className="p-2 hover:bg-gray-100 rounded-lg"><Eye size={16} /></Link>
                       <Link href={`/admin/products?action=edit&id=${product.id}`} className="p-2 hover:bg-gray-100 rounded-lg"><Edit size={16} /></Link>

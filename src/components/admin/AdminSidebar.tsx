@@ -19,6 +19,7 @@ import {
   FolderTree,
   Mail,
   Inbox,
+  Rocket,
 } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -44,61 +45,17 @@ export default function AdminSidebar() {
     { href: '/admin/messages', label: t('messages'), icon: MessageSquare },
     { href: '/admin/emails', label: t('emails'), icon: Mail },
     { href: '/admin/settings', label: t('settings'), icon: Settings },
+    { href: '/admin/landing', label: t('landingPages'), icon: Rocket },
   ]
-
-  const sidebarContent = (
-    <>
-      <div className="p-6 border-b border-gray-800">
-        <Link href="/admin/dashboard" className="text-2xl font-bold" onClick={() => setMobileOpen(false)}>
-          {siteName} <span className="text-primary-400">{t('adminPanel')}</span>
-        </Link>
-      </div>
-
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-              }`}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
-
-      <div className="p-4 border-t border-gray-800 space-y-1">
-        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" onClick={() => setMobileOpen(false)}>
-          <Home size={20} />
-          {t('backToSite')}
-        </Link>
-        <a href="/contact" target="_blank" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
-          <Inbox size={20} />
-          {t('viewContactPage')}
-        </a>
-      </div>
-    </>
-  )
 
   return (
     <>
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white p-4 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900 text-white p-4 flex items-center justify-between">
         <Link href="/admin/dashboard" className="text-xl font-bold">
           {siteName} <span className="text-primary-400">{t('adminPanel')}</span>
         </Link>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
+        <button onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -111,15 +68,53 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 bg-gray-900 text-white flex flex-col transform transition-transform duration-200 md:transform-none ${
-        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-      }`}>
-        {sidebarContent}
-      </aside>
+      {/* Sidebar - fixed on mobile, sticky in flow on desktop */}
+      <aside
+        className={`
+          fixed top-0 left-0 z-50 h-screen w-64 bg-gray-900 text-white flex flex-col
+          transform transition-transform duration-200 overflow-y-auto
+          md:sticky md:translate-x-0 md:z-30 md:h-screen
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <div className="hidden md:block p-6 border-b border-gray-800">
+          <Link href="/admin/dashboard" className="text-2xl font-bold">
+            {siteName} <span className="text-primary-400">{t('adminPanel')}</span>
+          </Link>
+        </div>
 
-      {/* Mobile spacer for fixed header */}
-      <div className="md:hidden h-16" />
+        <nav className="flex-1 p-4 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary-600 text-white'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-gray-800 space-y-1">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" onClick={() => setMobileOpen(false)}>
+            <Home size={20} />
+            {t('backToSite')}
+          </Link>
+          <a href="/contact" target="_blank" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+            <Inbox size={20} />
+            {t('viewContactPage')}
+          </a>
+        </div>
+      </aside>
     </>
   )
 }

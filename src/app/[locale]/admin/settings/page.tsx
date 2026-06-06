@@ -134,7 +134,15 @@ export default function AdminSettingsPage() {
                     <option value="GBP">GBP (&pound;)</option>
                   </select>
                 </div>
-                <button onClick={() => saveTab(['site_name', 'site_description', 'contact_email', 'contact_phone', 'address', 'currency'])} className="btn-primary" disabled={saving}>
+                <div>
+                  <label className="label">{t('fields.defaultLanguage')}</label>
+                  <select className="input" value={settings.default_language || 'fr'} onChange={(e) => updateSetting('default_language', e.target.value)}>
+                    <option value="fr">{t('fields.languageLabels.fr')}</option>
+                    <option value="ar">{t('fields.languageLabels.ar')}</option>
+                    <option value="en">{t('fields.languageLabels.en')}</option>
+                  </select>
+                </div>
+                <button onClick={() => saveTab(['site_name', 'site_description', 'contact_email', 'contact_phone', 'address', 'currency', 'default_language'])} className="btn-primary" disabled={saving}>
                   {saving ? <><Loader2 className="animate-spin" size={20} /> {t('saving')}</> : <><Save size={20} /> {t('saveChanges')}</>}
                 </button>
               </div>

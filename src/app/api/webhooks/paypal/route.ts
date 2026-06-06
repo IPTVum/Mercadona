@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { rateLimit } from '@/lib/rate-limit'
 
 async function getPayPalSettings() {
   const supabase = createClient(
@@ -83,6 +84,10 @@ async function verifyPayPalWebhook(
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const limited = rateLimit(ip)
+  if (limited) return limited
+
   try {
     const body = await req.text()
 

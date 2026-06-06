@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { rateLimit } from '@/lib/rate-limit'
 
 async function getStripeKeys(): Promise<{ secretKey: string; webhookSecret: string }> {
   const supabase = createClient(
@@ -24,6 +25,10 @@ async function getStripeKeys(): Promise<{ secretKey: string; webhookSecret: stri
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const limited = rateLimit(ip)
+  if (limited) return limited
+
   const body = await req.text()
   const signature = req.headers.get('stripe-signature')!
 
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   const stripe = new Stripe(secretKey, {
-    apiVersion: '2023-10-16' as any,
+    apiVersion: '2023-10-16',
   })
 
   let event: Stripe.Event
