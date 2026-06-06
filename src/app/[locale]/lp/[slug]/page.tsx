@@ -42,7 +42,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const ctaUrl = page.cta_url
   const imageUrl = page.image_url
   const bgColor = page.bg_color || '#f9fafb'
-  const featuresList = features ? features.split('\n').filter(Boolean) : []
+  const featuresList: string[] = features ? features.split('\n').filter(Boolean) : []
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
