@@ -79,19 +79,6 @@ function ProductsContent() {
     }
   }
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
-    if (action === 'new') {
-      setForm(emptyProduct)
-      setShowForm(true)
-    } else if (action === 'edit' && editId) {
-      loadProduct(editId)
-    }
-  }, [action, editId, loadProduct])
-
   const loadData = useCallback(async () => {
     const [prodRes, catRes] = await Promise.all([
       supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false }),
@@ -119,6 +106,19 @@ function ProductsContent() {
       setShowForm(true)
     }
   }, [supabase])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (action === 'new') {
+      setForm(emptyProduct)
+      setShowForm(true)
+    } else if (action === 'edit' && editId) {
+      loadProduct(editId)
+    }
+  }, [action, editId, loadProduct])
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error(t('nameRequired')); return }
