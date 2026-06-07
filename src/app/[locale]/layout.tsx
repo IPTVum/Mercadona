@@ -9,6 +9,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ToastProvider from '@/components/ui/ToastProvider'
 import BackToTop from '@/components/ui/BackToTop'
+import FloatingWhatsApp from '@/components/ui/FloatingWhatsApp'
 import { createServerClientSSR } from '@/lib/supabase-server'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
@@ -106,6 +107,7 @@ export default async function LocaleLayout({
           <Footer />
           <ToastProvider />
           <BackToTop />
+          <FloatingWhatsApp />
         </NextIntlClientProvider>
       </body>
     </html>

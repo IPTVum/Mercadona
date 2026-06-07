@@ -236,4 +236,15 @@ export interface LandingPage {
   is_active: boolean
   created_at: string
   updated_at: string
+  gallery_images: string[] | null
+  image_animation: string | null
+  hero_layout: string
+  video_url: string | null
+  secondary_cta_text_en: string | null
+  secondary_cta_text_fr: string | null
+  secondary_cta_url: string | null
+  enable_animations: boolean
+  badge_text_en: string | null
+  badge_text_fr: string | null
+  gallery_autoplay: number
 }

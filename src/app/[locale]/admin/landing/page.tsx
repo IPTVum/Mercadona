@@ -3,16 +3,34 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase'
-import { Plus, Edit, Trash2, Loader2, Save, X, Eye, Globe, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Edit, Trash2, Loader2, Save, X, Eye, Globe, ToggleLeft, ToggleRight, ImagePlus, Trash, GripVertical, Upload, Camera } from 'lucide-react'
 import { toast } from 'sonner'
 import type { LandingPage } from '@/types'
 import { Link } from '@/i18n/routing'
+
+const ANIMATION_OPTIONS = [
+  { value: '', label: 'None' },
+  { value: 'fade', label: 'Fade In' },
+  { value: 'zoom', label: 'Zoom In' },
+  { value: 'slide-in', label: 'Slide In' },
+  { value: 'float', label: 'Floating' },
+]
+
+const LAYOUT_OPTIONS = [
+  { value: 'image-right', label: 'Image Right' },
+  { value: 'image-left', label: 'Image Left' },
+  { value: 'split', label: 'Split / Overlay' },
+  { value: 'stacked', label: 'Stacked' },
+]
 
 const emptyForm = {
   slug: '', title_en: '', title_fr: '', headline_en: '', headline_fr: '',
   description_en: '', description_fr: '', features_en: '', features_fr: '',
   cta_text_en: 'Shop Now', cta_text_fr: 'Acheter Maintenant', cta_url: '/shop',
   image_url: '', bg_color: '#f9fafb', is_active: true,
+  gallery_images: [] as string[], image_animation: '', hero_layout: 'image-right',
+  video_url: '', secondary_cta_text_en: '', secondary_cta_text_fr: '', secondary_cta_url: '',
+  enable_animations: true, badge_text_en: '', badge_text_fr: '', gallery_autoplay: 4,
 }
 
 export default function AdminLandingPage() {
@@ -26,7 +44,8 @@ export default function AdminLandingPage() {
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [activeTab, setActiveTab] = useState<'en' | 'fr'>('fr')
-  const [previewLocale, setPreviewLocale] = useState<'en' | 'fr'>('fr')
+  const [uploading, setUploading] = useState(false)
+  const [galleryInput, setGalleryInput] = useState('')
 
   useEffect(() => { loadPages() }, [supabase])
 
@@ -45,9 +64,56 @@ export default function AdminLandingPage() {
       cta_text_en: page.cta_text_en, cta_text_fr: page.cta_text_fr,
       cta_url: page.cta_url, image_url: page.image_url || '', bg_color: page.bg_color || '#f9fafb',
       is_active: page.is_active,
+      gallery_images: page.gallery_images || [],
+      image_animation: page.image_animation || '',
+      hero_layout: page.hero_layout || 'image-right',
+      video_url: page.video_url || '',
+      secondary_cta_text_en: page.secondary_cta_text_en || '',
+      secondary_cta_text_fr: page.secondary_cta_text_fr || '',
+      secondary_cta_url: page.secondary_cta_url || '',
+      enable_animations: page.enable_animations !== undefined ? page.enable_animations : true,
+      badge_text_en: page.badge_text_en || '',
+      badge_text_fr: page.badge_text_fr || '',
+      gallery_autoplay: page.gallery_autoplay || 4,
     })
     setEditId(page.id)
     setShowForm(true)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetKey: 'image_url' | 'gallery') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
+    setUploading(true)
+    try {
+      const path = `landing/${Date.now()}-${file.name}`
+      const { error } = await supabase.storage.from('media').upload(path, file)
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('media').getPublicUrl(path)
+      const url = urlData.publicUrl
+      if (targetKey === 'image_url') {
+        setForm({ ...form, image_url: url })
+      } else {
+        setForm({ ...form, gallery_images: [...form.gallery_images, url] })
+      }
+      toast.success('Image uploaded!')
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  const addGalleryUrl = () => {
+    const url = galleryInput.trim()
+    if (!url) return
+    setForm({ ...form, gallery_images: [...form.gallery_images, url] })
+    setGalleryInput('')
+  }
+
+  const removeGalleryImage = (index: number) => {
+    setForm({ ...form, gallery_images: form.gallery_images.filter((_, i) => i !== index) })
   }
 
   const handleSave = async () => {
@@ -66,6 +132,17 @@ export default function AdminLandingPage() {
         cta_text_en: form.cta_text_en, cta_text_fr: form.cta_text_fr,
         cta_url: form.cta_url, image_url: form.image_url || null, bg_color: form.bg_color,
         is_active: form.is_active,
+        gallery_images: form.gallery_images.length > 0 ? form.gallery_images : null,
+        image_animation: form.image_animation || null,
+        hero_layout: form.hero_layout,
+        video_url: form.video_url || null,
+        secondary_cta_text_en: form.secondary_cta_text_en || null,
+        secondary_cta_text_fr: form.secondary_cta_text_fr || null,
+        secondary_cta_url: form.secondary_cta_url || null,
+        enable_animations: form.enable_animations,
+        badge_text_en: form.badge_text_en || null,
+        badge_text_fr: form.badge_text_fr || null,
+        gallery_autoplay: form.gallery_autoplay,
       }
       if (editId) {
         const { error } = await supabase.from('landing_pages').update(data).eq('id', editId)
@@ -101,6 +178,8 @@ export default function AdminLandingPage() {
     loadPages()
   }
 
+  const fieldVis = (field: string) => activeTab === 'en' && field.endsWith('_en') ? '' : activeTab === 'fr' && field.endsWith('_fr') ? '' : activeTab === 'en' && !field.includes('_') ? '' : 'hidden'
+
   if (loading) {
     return (
       <div>
@@ -109,8 +188,6 @@ export default function AdminLandingPage() {
       </div>
     )
   }
-
-  const inputClass = (field: string) => activeTab === 'en' && field.endsWith('_en') ? '' : activeTab === 'fr' && field.endsWith('_fr') ? '' : activeTab === 'en' && !field.includes('_') ? '' : 'hidden'
 
   return (
     <div>
@@ -125,74 +202,178 @@ export default function AdminLandingPage() {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">{editId ? t('edit') : t('create')}</h2>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
               <button onClick={() => setActiveTab('fr')} className={`px-3 py-1 rounded text-sm font-medium ${activeTab === 'fr' ? 'bg-primary-600 text-white' : 'bg-gray-100'}`}>FR</button>
               <button onClick={() => setActiveTab('en')} className={`px-3 py-1 rounded text-sm font-medium ${activeTab === 'en' ? 'bg-primary-600 text-white' : 'bg-gray-100'}`}>EN</button>
             </div>
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label">{t('slug')} *</label>
-              <input type="text" className="input" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="moroccan-berber-rugs" />
+
+          {/* SECTION: Content */}
+          <div className="border-b border-gray-200 pb-4 mb-4">
+            <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wider mb-3">{t('sections.content')}</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">{t('slug')} *</label>
+                <input type="text" className="input" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="moroccan-berber-rugs" />
+              </div>
+              <div>
+                <label className="label">{t('ctaUrl')}</label>
+                <input type="text" className="input" value={form.cta_url} onChange={(e) => setForm({ ...form, cta_url: e.target.value })} placeholder="/shop" />
+              </div>
+              <div className={activeTab === 'fr' ? '' : 'hidden'}>
+                <label className="label">{t('badgeTextFr')}</label>
+                <input type="text" className="input" value={form.badge_text_fr} onChange={(e) => setForm({ ...form, badge_text_fr: e.target.value })} placeholder="PROMOTION / Bestseller" />
+              </div>
+              <div className={activeTab === 'en' ? '' : 'hidden'}>
+                <label className="label">{t('badgeTextEn')}</label>
+                <input type="text" className="input" value={form.badge_text_en} onChange={(e) => setForm({ ...form, badge_text_en: e.target.value })} placeholder="PROMOTION / Bestseller" />
+              </div>
+              <div className={activeTab === 'fr' ? '' : 'hidden'}>
+                <label className="label">{t('titleFr')} *</label>
+                <input type="text" className="input" value={form.title_fr} onChange={(e) => setForm({ ...form, title_fr: e.target.value })} />
+              </div>
+              <div className={activeTab === 'en' ? '' : 'hidden'}>
+                <label className="label">{t('titleEn')} *</label>
+                <input type="text" className="input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
+                <label className="label">{t('headlineFr')} *</label>
+                <input type="text" className="input" value={form.headline_fr} onChange={(e) => setForm({ ...form, headline_fr: e.target.value })} />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
+                <label className="label">{t('headlineEn')} *</label>
+                <input type="text" className="input" value={form.headline_en} onChange={(e) => setForm({ ...form, headline_en: e.target.value })} />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
+                <label className="label">{t('descriptionFr')} *</label>
+                <textarea className="input" rows={4} value={form.description_fr} onChange={(e) => setForm({ ...form, description_fr: e.target.value })} />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
+                <label className="label">{t('descriptionEn')} *</label>
+                <textarea className="input" rows={4} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
+                <label className="label">{t('featuresFr')}</label>
+                <textarea className="input" rows={4} value={form.features_fr} onChange={(e) => setForm({ ...form, features_fr: e.target.value })} placeholder="✓ Feature 1&#10;✓ Feature 2&#10;✓ Feature 3" />
+              </div>
+              <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
+                <label className="label">{t('featuresEn')}</label>
+                <textarea className="input" rows={4} value={form.features_en} onChange={(e) => setForm({ ...form, features_en: e.target.value })} placeholder="✓ Feature 1&#10;✓ Feature 2&#10;✓ Feature 3" />
+              </div>
             </div>
-            <div>
-              <label className="label">{t('ctaUrl')}</label>
-              <input type="text" className="input" value={form.cta_url} onChange={(e) => setForm({ ...form, cta_url: e.target.value })} placeholder="/shop" />
-            </div>
-            <div className={activeTab === 'fr' ? '' : 'hidden'}>
-              <label className="label">{t('titleFr')} *</label>
-              <input type="text" className="input" value={form.title_fr} onChange={(e) => setForm({ ...form, title_fr: e.target.value })} />
-            </div>
-            <div className={activeTab === 'en' ? '' : 'hidden'}>
-              <label className="label">{t('titleEn')} *</label>
-              <input type="text" className="input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
-              <label className="label">{t('headlineFr')} *</label>
-              <input type="text" className="input" value={form.headline_fr} onChange={(e) => setForm({ ...form, headline_fr: e.target.value })} />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
-              <label className="label">{t('headlineEn')} *</label>
-              <input type="text" className="input" value={form.headline_en} onChange={(e) => setForm({ ...form, headline_en: e.target.value })} />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
-              <label className="label">{t('descriptionFr')} *</label>
-              <textarea className="input" rows={4} value={form.description_fr} onChange={(e) => setForm({ ...form, description_fr: e.target.value })} />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
-              <label className="label">{t('descriptionEn')} *</label>
-              <textarea className="input" rows={4} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'fr' ? '' : 'hidden'}`}>
-              <label className="label">{t('featuresFr')}</label>
-              <textarea className="input" rows={4} value={form.features_fr} onChange={(e) => setForm({ ...form, features_fr: e.target.value })} placeholder="✓ Feature 1&#10;✓ Feature 2&#10;✓ Feature 3" />
-            </div>
-            <div className={`md:col-span-2 ${activeTab === 'en' ? '' : 'hidden'}`}>
-              <label className="label">{t('featuresEn')}</label>
-              <textarea className="input" rows={4} value={form.features_en} onChange={(e) => setForm({ ...form, features_en: e.target.value })} placeholder="✓ Feature 1&#10;✓ Feature 2&#10;✓ Feature 3" />
-            </div>
-            <div className={activeTab === 'fr' ? '' : 'hidden'}>
-              <label className="label">{t('ctaTextFr')}</label>
-              <input type="text" className="input" value={form.cta_text_fr} onChange={(e) => setForm({ ...form, cta_text_fr: e.target.value })} />
-            </div>
-            <div className={activeTab === 'en' ? '' : 'hidden'}>
-              <label className="label">{t('ctaTextEn')}</label>
-              <input type="text" className="input" value={form.cta_text_en} onChange={(e) => setForm({ ...form, cta_text_en: e.target.value })} />
-            </div>
-            <div>
-              <label className="label">{t('imageUrl')}</label>
-              <input type="text" className="input" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-            </div>
-            <div>
-              <label className="label">{t('bgColor')}</label>
-              <input type="color" className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer" value={form.bg_color} onChange={(e) => setForm({ ...form, bg_color: e.target.value })} />
-            </div>
-            <label className="flex items-center gap-2 py-2">
-              <input type="checkbox" className="w-4 h-4" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
-              <span>{t('active')}</span>
-            </label>
           </div>
-          <div className="flex gap-3 mt-6">
+
+          {/* SECTION: Media & Visuals */}
+          <div className="border-b border-gray-200 pb-4 mb-4">
+            <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wider mb-3">{t('sections.media')}</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">{t('heroImage')}</label>
+                <div className="flex gap-2">
+                  <input type="text" className="input flex-1" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+                  <label className="btn-secondary cursor-pointer flex-shrink-0">
+                    <Upload size={16} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'image_url')} disabled={uploading} />
+                  </label>
+                </div>
+                {form.image_url && <img src={form.image_url} alt="" className="mt-2 w-full max-h-32 object-cover rounded-lg border" />}
+              </div>
+              <div>
+                <label className="label">{t('videoUrl')}</label>
+                <input type="text" className="input" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} placeholder="https://youtube.com/watch?v=... or .mp4 URL" />
+              </div>
+            </div>
+
+            {/* Gallery images */}
+            <div className="mt-4">
+              <label className="label">{t('galleryImages')}</label>
+              <div className="flex gap-2 mb-2">
+                <input type="text" className="input flex-1" value={galleryInput} onChange={(e) => setGalleryInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addGalleryUrl()} placeholder="Paste image URL and click Add..." />
+                <button onClick={addGalleryUrl} className="btn-secondary"><Plus size={16} /> Add</button>
+                <label className="btn-secondary cursor-pointer flex-shrink-0">
+                  <Camera size={16} /> <span className="hidden sm:inline">Upload</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'gallery')} disabled={uploading} />
+                </label>
+              </div>
+              {form.gallery_images.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {form.gallery_images.map((img, i) => (
+                    <div key={i} className="relative group">
+                      <img src={img} alt="" className="w-20 h-20 object-cover rounded-lg border" />
+                      <button onClick={() => removeGalleryImage(i)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><Trash size={10} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-1">{t('galleryHint')}</p>
+            </div>
+          </div>
+
+          {/* SECTION: Design & Animation */}
+          <div className="border-b border-gray-200 pb-4 mb-4">
+            <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wider mb-3">{t('sections.design')}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="label">{t('bgColor')}</label>
+                <input type="color" className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer" value={form.bg_color} onChange={(e) => setForm({ ...form, bg_color: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">{t('heroLayout')}</label>
+                <select className="input" value={form.hero_layout} onChange={(e) => setForm({ ...form, hero_layout: e.target.value })}>
+                  {LAYOUT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">{t('imageAnimation')}</label>
+                <select className="input" value={form.image_animation} onChange={(e) => setForm({ ...form, image_animation: e.target.value })}>
+                  {ANIMATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">{t('galleryAutoplay')}</label>
+                <input type="number" className="input" value={form.gallery_autoplay} onChange={(e) => setForm({ ...form, gallery_autoplay: parseInt(e.target.value) || 0 })} min={0} max={30} />
+              </div>
+            </div>
+            <div className="flex items-center gap-6 mt-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4" checked={form.enable_animations} onChange={(e) => setForm({ ...form, enable_animations: e.target.checked })} />
+                <span className="text-sm font-medium text-gray-700">{t('enableAnimations')}</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
+                <span className="text-sm font-medium text-gray-700">{t('active')}</span>
+              </label>
+            </div>
+          </div>
+
+          {/* SECTION: Call to Actions */}
+          <div className="pb-2 mb-4">
+            <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wider mb-3">{t('sections.cta')}</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className={activeTab === 'fr' ? '' : 'hidden'}>
+                <label className="label">{t('ctaTextFr')}</label>
+                <input type="text" className="input" value={form.cta_text_fr} onChange={(e) => setForm({ ...form, cta_text_fr: e.target.value })} />
+              </div>
+              <div className={activeTab === 'en' ? '' : 'hidden'}>
+                <label className="label">{t('ctaTextEn')}</label>
+                <input type="text" className="input" value={form.cta_text_en} onChange={(e) => setForm({ ...form, cta_text_en: e.target.value })} />
+              </div>
+              <div className={activeTab === 'fr' ? '' : 'hidden'}>
+                <label className="label">{t('secondaryCtaTextFr')}</label>
+                <input type="text" className="input" value={form.secondary_cta_text_fr} onChange={(e) => setForm({ ...form, secondary_cta_text_fr: e.target.value })} placeholder="En Savoir Plus" />
+              </div>
+              <div className={activeTab === 'en' ? '' : 'hidden'}>
+                <label className="label">{t('secondaryCtaTextEn')}</label>
+                <input type="text" className="input" value={form.secondary_cta_text_en} onChange={(e) => setForm({ ...form, secondary_cta_text_en: e.target.value })} placeholder="Learn More" />
+              </div>
+              <div>
+                <label className="label">{t('secondaryCtaUrl')}</label>
+                <input type="text" className="input" value={form.secondary_cta_url} onChange={(e) => setForm({ ...form, secondary_cta_url: e.target.value })} placeholder="/about" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
             <button onClick={handleSave} disabled={saving} className="btn-primary">
               {saving ? <><Loader2 className="animate-spin" size={20} /> {t('saving')}</> : <><Save size={20} /> {editId ? t('update') : t('create')}</>}
             </button>

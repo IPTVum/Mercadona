@@ -30,7 +30,9 @@
     "no": "No",
     "confirmDelete": "Are you sure you want to delete this? This action cannot be undone.",
     "currency": "DH",
-    "free": "Free"
+    "free": "Free",
+    "chatWithUs": "Chat with us",
+    "whatsappGreeting": "Hello! I'm interested in your Moroccan rugs. Can you help me?"
   },
   "header": {
     "home": "Home",
@@ -467,6 +469,8 @@
       "emails": "Emails",
       "settings": "Settings",
       "landingPages": "Landing Pages",
+      "marketing": "Marketing",
+      "customers": "Customers",
       "backToSite": "Back to Site",
       "viewContactPage": "View Contact Page",
       "signOut": "Sign Out",
@@ -937,7 +941,111 @@
       "deleted": "Landing page deleted",
       "saveError": "Failed to save landing page",
       "saving": "Saving...",
-      "update": "Update Page"
+      "update": "Update Page",
+      "sections": {
+        "content": "Content",
+        "media": "Media & Visuals",
+        "design": "Design & Animation",
+        "cta": "Call to Action"
+      },
+      "badgeTextFr": "Badge Text (FR)",
+      "badgeTextEn": "Badge Text (EN)",
+      "heroImage": "Hero Image",
+      "videoUrl": "Video URL (YouTube or MP4)",
+      "galleryImages": "Gallery Images (carousel)",
+      "galleryHint": "Add multiple images to create a swipeable gallery. Upload or paste URLs.",
+      "heroLayout": "Hero Layout",
+      "imageAnimation": "Image Animation",
+      "galleryAutoplay": "Autoplay (seconds, 0 = off)",
+      "enableAnimations": "Page Animations",
+      "secondaryCtaTextFr": "Secondary CTA Text (FR)",
+      "secondaryCtaTextEn": "Secondary CTA Text (EN)",
+      "secondaryCtaUrl": "Secondary CTA URL"
+    },
+    "marketing": {
+      "title": "Social Media Marketing Kit",
+      "subtitle": "Everything you need to advertise Moroccan rugs across social platforms — templates, tips, hashtags, and strategies",
+      "tabs": {
+        "overview": "Overview",
+        "templates": "Templates & Copy",
+        "visuals": "Photos & Videos",
+        "hashtags": "Hashtags",
+        "strategy": "Ad Strategy",
+        "calendar": "Content Calendar"
+      },
+      "overview": {
+        "title": "Why Moroccan Rugs Sell",
+        "audience": "Target Audience",
+        "pricing": "Pricing Strategy",
+        "global": "Global Reach",
+        "quality": "Quality & Authenticity",
+        "points": "Key Selling Points",
+        "platforms": "Platform Strategy"
+      },
+      "templates": {
+        "headlines": "Ad Headlines",
+        "captions": "Social Media Captions",
+        "reels": "Reels & Story Scripts",
+        "whatsapp": "WhatsApp Business Templates"
+      },
+      "visuals": {
+        "photo": "Photography Tips",
+        "dimensions": "Image Dimensions",
+        "video": "Video Tips",
+        "palette": "Brand Color Palette"
+      },
+      "hashtags": {
+        "primary": "Primary Hashtags",
+        "byPlatform": "Hashtags by Platform",
+        "seasonal": "Seasonal Hashtags",
+        "tips": "Hashtag Tips"
+      },
+      "strategy": {
+        "audience": "Target Audiences",
+        "adTypes": "Ad Types & Formats",
+        "budget": "Budget & Scaling",
+        "influencer": "Influencer Strategy",
+        "optimization": "Optimization Tips"
+      },
+      "calendar": {
+        "schedule": "Weekly Posting Schedule",
+        "seasonal": "Seasonal Campaigns & Promotions",
+        "bestTimes": "Best Posting Times",
+        "quickTips": "Pro Tips"
+      },
+      "cta": {
+        "title": "Ready to start selling?",
+        "desc": "Make sure your product catalog is up to date and start running ads today.",
+        "products": "Manage Products",
+        "orders": "View Orders"
+      }
+    },
+    "customers": {
+      "title": "Customer Contacts",
+      "subtitle": "Browse customer contact information organized by country and region",
+      "searchPlaceholder": "Search by name, email, country, city...",
+      "allCountries": "All Countries",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "unknownCountry": "Unknown",
+      "noAddress": "No address",
+      "noName": "No name",
+      "noCustomers": "No customers found",
+      "noCustomersHint": "Customer contacts will appear here once they register and purchase.",
+      "customerCount": "{count} customers",
+      "stats": {
+        "customers": "Customers",
+        "countries": "Countries",
+        "orders": "Orders",
+        "revenue": "Total Revenue"
+      },
+      "table": {
+        "customer": "Customer",
+        "contact": "Contact",
+        "location": "Location",
+        "orders": "Orders",
+        "spent": "Total Spent"
+      }
     }
   },
   "pagination": {

@@ -40,3 +40,7 @@ Thumbs.db
 # Misc
 *.pem
 Infos
+
+# Seed data and uploaded images
+Tamazirt/
+public/images/rugs/

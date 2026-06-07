@@ -30,7 +30,9 @@
     "no": "Non",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer ceci ? Cette action est irréversible.",
     "currency": "DH",
-    "free": "Gratuit"
+    "free": "Gratuit",
+    "chatWithUs": "Discutez avec nous",
+    "whatsappGreeting": "Bonjour ! Je suis intéressé par vos tapis marocains. Pouvez-vous m'aider ?"
   },
   "header": {
     "home": "Accueil",
@@ -476,6 +478,8 @@
       "emails": "Emails",
       "settings": "Paramètres",
       "landingPages": "Pages d'Atterrissage",
+      "marketing": "Marketing",
+      "customers": "Clients",
       "backToSite": "Retour au Site",
       "signOut": "Déconnexion",
       "adminPanel": "Panneau d'Administration",
@@ -952,7 +956,111 @@
       "deleted": "Page supprimée",
       "saveError": "Échec de l''enregistrement",
       "saving": "Enregistrement...",
-      "update": "Mettre à Jour"
+      "update": "Mettre à Jour",
+      "sections": {
+        "content": "Contenu",
+        "media": "Médias & Visuels",
+        "design": "Design & Animation",
+        "cta": "Appel à l'Action"
+      },
+      "badgeTextFr": "Texte Badge (FR)",
+      "badgeTextEn": "Texte Badge (EN)",
+      "heroImage": "Image Hero",
+      "videoUrl": "URL Vidéo (YouTube ou MP4)",
+      "galleryImages": "Images Galerie (carrousel)",
+      "galleryHint": "Ajoutez plusieurs images pour un carrousel. Téléchargez ou collez des URLs.",
+      "heroLayout": "Disposition Hero",
+      "imageAnimation": "Animation Image",
+      "galleryAutoplay": "Défilement auto (secondes, 0 = arrêt)",
+      "enableAnimations": "Animations de Page",
+      "secondaryCtaTextFr": "Texte CTA Secondaire (FR)",
+      "secondaryCtaTextEn": "Texte CTA Secondaire (EN)",
+      "secondaryCtaUrl": "URL CTA Secondaire"
+    },
+    "marketing": {
+      "title": "Kit Marketing Réseaux Sociaux",
+      "subtitle": "Tout ce dont vous avez besoin pour promouvoir les tapis marocains sur les réseaux sociaux",
+      "tabs": {
+        "overview": "Aperçu",
+        "templates": "Templates",
+        "visuals": "Photos & Vidéos",
+        "hashtags": "Hashtags",
+        "strategy": "Stratégie Pub",
+        "calendar": "Calendrier"
+      },
+      "overview": {
+        "title": "Pourquoi les Tapis Marocains se Vendent",
+        "audience": "Audience Cible",
+        "pricing": "Stratégie de Prix",
+        "global": "Portée Mondiale",
+        "quality": "Qualité & Authenticité",
+        "points": "Arguments de Vente",
+        "platforms": "Stratégie par Plateforme"
+      },
+      "templates": {
+        "headlines": "Accroches Publicitaires",
+        "captions": "Légendes Réseaux Sociaux",
+        "reels": "Scripts Reels & Stories",
+        "whatsapp": "Templates WhatsApp Business"
+      },
+      "visuals": {
+        "photo": "Conseils Photo",
+        "dimensions": "Dimensions d'Images",
+        "video": "Conseils Vidéo",
+        "palette": "Palette de Couleurs"
+      },
+      "hashtags": {
+        "primary": "Hashtags Principaux",
+        "byPlatform": "Hashtags par Plateforme",
+        "seasonal": "Hashtags Saisonniers",
+        "tips": "Conseils Hashtags"
+      },
+      "strategy": {
+        "audience": "Audiences Cibles",
+        "adTypes": "Types de Publicités",
+        "budget": "Budget & Mise à l'Échelle",
+        "influencer": "Stratégie Influenceurs",
+        "optimization": "Optimisation"
+      },
+      "calendar": {
+        "schedule": "Planning Hebdomadaire",
+        "seasonal": "Campagnes Saisonnières",
+        "bestTimes": "Meilleurs Horaires",
+        "quickTips": "Conseils Pro"
+      },
+      "cta": {
+        "title": "Prêt à vendre ?",
+        "desc": "Assurez-vous que votre catalogue est à jour et lancez vos publicités.",
+        "products": "Gérer les Produits",
+        "orders": "Voir les Commandes"
+      }
+    },
+    "customers": {
+      "title": "Contacts Clients",
+      "subtitle": "Parcourez les informations de contact des clients par pays et région",
+      "searchPlaceholder": "Rechercher par nom, email, pays...",
+      "allCountries": "Tous les Pays",
+      "expandAll": "Tout Déplier",
+      "collapseAll": "Tout Replier",
+      "unknownCountry": "Inconnu",
+      "noAddress": "Sans adresse",
+      "noName": "Sans nom",
+      "noCustomers": "Aucun client trouvé",
+      "noCustomersHint": "Les contacts clients apparaîtront ici après inscription et achat.",
+      "customerCount": "{count} clients",
+      "stats": {
+        "customers": "Clients",
+        "countries": "Pays",
+        "orders": "Commandes",
+        "revenue": "Revenu Total"
+      },
+      "table": {
+        "customer": "Client",
+        "contact": "Contact",
+        "location": "Localisation",
+        "orders": "Commandes",
+        "spent": "Total Dépensé"
+      }
     }
   },
   "pagination": {

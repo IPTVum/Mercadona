@@ -20,6 +20,8 @@ import {
   Mail,
   Inbox,
   Rocket,
+  Megaphone,
+  Globe,
 } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -46,6 +48,8 @@ export default function AdminSidebar() {
     { href: '/admin/emails', label: t('emails'), icon: Mail },
     { href: '/admin/settings', label: t('settings'), icon: Settings },
     { href: '/admin/landing', label: t('landingPages'), icon: Rocket },
+    { href: '/admin/marketing', label: t('marketing'), icon: Megaphone },
+    { href: '/admin/customers', label: t('customers'), icon: Globe },
   ]
 
   return (

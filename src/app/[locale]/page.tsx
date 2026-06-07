@@ -179,12 +179,32 @@ export default async function HomePage() {
                 <Link
                   key={category.id}
                   href={`/shop?category=${category.slug}`}
-                  className="group p-6 bg-gray-50 rounded-xl hover:bg-primary-50 transition-colors text-center"
+                  className="group p-4 bg-gray-50 rounded-xl hover:bg-primary-50 hover:shadow-md transition-all duration-300 text-center"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 bg-primary-100 rounded-full flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                    <span className="text-2xl font-bold text-primary-600">{category.name[0]}</span>
+                  <div className="w-full aspect-square mx-auto mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <span className="text-4xl group-hover:scale-110 transition-transform duration-300">
+                        {category.name.toLowerCase().includes('rug') || category.name.toLowerCase().includes('tapis') || category.name.toLowerCase().includes('carpet')
+                          ? '🧶'
+                          : category.name.toLowerCase().includes('pillow') || category.name.toLowerCase().includes('cushion')
+                          ? '🛋️'
+                          : category.name.toLowerCase().includes('lamp') || category.name.toLowerCase().includes('light')
+                          ? '🏮'
+                          : category.name.toLowerCase().includes('table') || category.name.toLowerCase().includes('furniture')
+                          ? '🪑'
+                          : category.name.toLowerCase().includes('ceramic') || category.name.toLowerCase().includes('pottery')
+                          ? '🏺'
+                          : '🧶'}
+                      </span>
+                    )}
                   </div>
-                  <h3 className="font-medium text-gray-900 group-hover:text-primary-700">{category.name}</h3>
+                  <h3 className="font-medium text-sm text-gray-900 group-hover:text-primary-700 line-clamp-2">{category.name}</h3>
                 </Link>
               ))}
             </div>
