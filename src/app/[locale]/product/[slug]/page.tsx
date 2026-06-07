@@ -103,13 +103,14 @@ function generateStructuredData(product: Product) {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProduct(params.slug)
-  if (!product) notFound()
+  try {
+    const product = await getProduct(params.slug)
+    if (!product) notFound()
 
-  const [relatedProducts, reviews] = await Promise.all([
-    getRelatedProducts(product.id, product.category_id),
-    getProductReviews(product.id),
-  ])
+    const [relatedProducts, reviews] = await Promise.all([
+      getRelatedProducts(product.id, product.category_id),
+      getProductReviews(product.id),
+    ])
 
   const tp = await getTranslations('product')
   const th = await getTranslations('header')
@@ -382,6 +383,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </div>
     </div>
   )
+  } catch (error) {
+    console.error('Product page render error:', error)
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
+          <p className="text-gray-500">Please try again later.</p>
+        </div>
+      </div>
+    )
+  }
 }
 
 export const revalidate = 60
