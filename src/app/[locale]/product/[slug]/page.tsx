@@ -107,28 +107,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const product = await getProduct(params.slug)
     if (!product) notFound()
 
+    const tp = await getTranslations('product')
+    const th = await getTranslations('header')
+    const tc = await getTranslations('common')
+    const thf = await getTranslations('home')
+
     const [relatedProducts, reviews] = await Promise.all([
       getRelatedProducts(product.id, product.category_id),
       getProductReviews(product.id),
     ])
 
-  const tp = await getTranslations('product')
-  const th = await getTranslations('header')
-  const tc = await getTranslations('common')
-  const thf = await getTranslations('home')
+    const discount = calculateDiscount(product.price, product.compare_price)
+    const whatsappUrl = getWhatsAppUrl(
+      process.env.WHATSAPP_NUMBER || '+1234567890',
+      getWhatsAppMessage(product.name, product.price)
+    )
+    const avgRating = reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      : null
 
-  const discount = calculateDiscount(product.price, product.compare_price)
-  const whatsappUrl = getWhatsAppUrl(
-    process.env.WHATSAPP_NUMBER || '+1234567890',
-    getWhatsAppMessage(product.name, product.price)
-  )
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : null
+    const structuredData = generateStructuredData(product)
 
-  const structuredData = generateStructuredData(product)
-
-  return (
+    return (
     <div className="bg-white">
       <script
         type="application/ld+json"
