@@ -5,13 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatPrice(price: number, currency: string = 'MAD', locale?: string): string {
+export function formatPrice(price: number | string, currency: string = 'MAD', locale?: string): string {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price
   return new Intl.NumberFormat(locale || 'en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: currency === 'MAD' ? 2 : 2,
     maximumFractionDigits: 2,
-  }).format(price)
+  }).format(numPrice)
 }
 
 export function getCurrencySymbol(currency: string): string {
@@ -46,16 +47,17 @@ const EXCHANGE_RATES: Record<string, number> = {
   GBP: 0.08,    // 1 MAD ≈ 0.08 GBP
 }
 
-export function convertCurrency(amount: number, from: string, to: string): number {
-  if (from === to) return amount
-  // Convert to MAD first (if not already), then to target currency
-  const amountInMAD = from === 'MAD' ? amount : amount / (EXCHANGE_RATES[from] || 1)
+export function convertCurrency(amount: number | string, from: string, to: string): number {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+  if (from === to) return numAmount
+  const amountInMAD = from === 'MAD' ? numAmount : numAmount / (EXCHANGE_RATES[from] || 1)
   const converted = amountInMAD * (EXCHANGE_RATES[to] || 1)
   return Math.round(converted * 100) / 100
 }
 
-export function formatConvertedPrice(price: number, fromCurrency: string, toCurrency: string): string {
-  const converted = convertCurrency(price, fromCurrency, toCurrency)
+export function formatConvertedPrice(price: number | string, fromCurrency: string, toCurrency: string): string {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price
+  const converted = convertCurrency(numPrice, fromCurrency, toCurrency)
   return formatPrice(converted, toCurrency)
 }
 
@@ -128,10 +130,11 @@ const WHATSAPP_TEMPLATES: Record<string, { greeting: string; product: string; qu
   },
 }
 
-export function getWhatsAppMessage(productName: string, productPrice: number, quantity: number = 1, locale?: string): string {
+export function getWhatsAppMessage(productName: string, productPrice: number | string, quantity: number = 1, locale?: string): string {
+  const numPrice = typeof productPrice === 'string' ? parseFloat(productPrice) : productPrice
   const lang = (locale || 'en').split('-')[0]
   const m = WHATSAPP_TEMPLATES[lang] || WHATSAPP_TEMPLATES.en
-  const message = `${m.greeting}\n\n${m.product}: ${productName}\n${m.quantity}: ${quantity}\n${m.price}: $${productPrice}\n${m.total}: $${productPrice * quantity}\n\n${m.confirm}`
+  const message = `${m.greeting}\n\n${m.product}: ${productName}\n${m.quantity}: ${quantity}\n${m.price}: $${numPrice}\n${m.total}: $${numPrice * quantity}\n\n${m.confirm}`
   return encodeURIComponent(message)
 }
 
@@ -140,9 +143,11 @@ export function getWhatsAppUrl(phoneNumber: string, message: string): string {
   return `https://wa.me/${cleanNumber}?text=${message}`
 }
 
-export function calculateDiscount(price: number, comparePrice: number | null): number | null {
-  if (!comparePrice || comparePrice <= price) return null
-  return Math.round(((comparePrice - price) / comparePrice) * 100)
+export function calculateDiscount(price: number | string, comparePrice: number | string | null): number | null {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price
+  const numCompare = comparePrice != null ? (typeof comparePrice === 'string' ? parseFloat(comparePrice) : comparePrice) : null
+  if (!numCompare || numCompare <= numPrice) return null
+  return Math.round(((numCompare - numPrice) / numCompare) * 100)
 }
 
 export function validateEmail(email: string): boolean {

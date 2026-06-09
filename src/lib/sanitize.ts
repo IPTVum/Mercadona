@@ -20,9 +20,14 @@ const ALLOWED_ATTR = [
 ]
 
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
-  })
+  try {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS,
+      ALLOWED_ATTR,
+      ALLOW_DATA_ATTR: false,
+    })
+  } catch (error) {
+    console.error('DOMPurify sanitization failed:', error)
+    return html.replace(/<[^>]*>/g, '')
+  }
 }
