@@ -40,6 +40,7 @@ export default function AdminOrdersPage() {
   const supabase = useMemo(() => createClient(), [])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
@@ -55,8 +56,13 @@ export default function AdminOrdersPage() {
   }, [supabase])
 
   const loadOrders = async () => {
-    const { data } = await supabase.from('orders').select('*, profiles(full_name, email)').order('created_at', { ascending: false })
-    if (data) setOrders(data)
+    setError(null)
+    const { data, error: err } = await supabase.from('orders').select('*, profiles(full_name, email)').order('created_at', { ascending: false })
+    if (err) {
+      setError(err.message)
+    } else if (data) {
+      setOrders(data)
+    }
     setLoading(false)
   }
 
@@ -178,6 +184,19 @@ export default function AdminOrdersPage() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-8">{t('title')}</h1>
         <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={20} /> {tc('loading')}</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-8">{t('title')}</h1>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-700 font-medium mb-2">{tc('error.title')}</p>
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+          <button onClick={loadOrders} className="btn-primary">{tc('error.retry')}</button>
+        </div>
       </div>
     )
   }

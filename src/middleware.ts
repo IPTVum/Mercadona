@@ -19,6 +19,7 @@ export async function middleware(request: NextRequest) {
   }
 
   let supabaseResponse = NextResponse.next({ request })
+  const pendingCookies: { name: string; value: string; options: any }[] = []
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,6 +32,7 @@ export async function middleware(request: NextRequest) {
         set(key: string, value: string, options: any) {
           request.cookies.set(key, value)
           supabaseResponse.cookies.set(key, value, options)
+          pendingCookies.push({ name: key, value, options })
         },
         remove(key: string, options: any) {
           request.cookies.delete(key)
@@ -53,16 +55,19 @@ export async function middleware(request: NextRequest) {
 
   const locale = pathname.match(/^\/(en|fr|ar)/)?.[1] || routing.defaultLocale
 
+  const applyPendingCookies = (res: NextResponse) => {
+    pendingCookies.forEach(({ name, value, options }) => {
+      res.cookies.set(name, value, options)
+    })
+    return res
+  }
+
   if (isAdminRoute) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = `/${locale}/login`
       url.searchParams.set('redirect', request.nextUrl.pathname)
-      const redirectResponse = NextResponse.redirect(url)
-      supabaseResponse.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value)
-      })
-      return redirectResponse
+      return applyPendingCookies(NextResponse.redirect(url))
     }
 
     const { data: profile } = await supabase
@@ -74,44 +79,28 @@ export async function middleware(request: NextRequest) {
     if (!profile || profile.role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = `/${locale}`
-      const redirectResponse = NextResponse.redirect(url)
-      supabaseResponse.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value)
-      })
-      return redirectResponse
+      return applyPendingCookies(NextResponse.redirect(url))
     }
   }
 
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/profile`
-    const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value)
-    })
-    return redirectResponse
+    return applyPendingCookies(NextResponse.redirect(url))
   }
 
   if (isProfileRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/login`
     url.searchParams.set('redirect', request.nextUrl.pathname)
-    const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value)
-    })
-    return redirectResponse
+    return applyPendingCookies(NextResponse.redirect(url))
   }
 
   if (isCheckoutRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/login`
     url.searchParams.set('redirect', request.nextUrl.pathname)
-    const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value)
-    })
-    return redirectResponse
+    return applyPendingCookies(NextResponse.redirect(url))
   }
 
   let defaultLocale = routing.defaultLocale

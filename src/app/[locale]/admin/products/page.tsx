@@ -40,6 +40,7 @@ function ProductsContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [form, setForm] = useState(emptyProduct)
@@ -80,11 +81,16 @@ function ProductsContent() {
   }
 
   const loadData = useCallback(async () => {
+    setError(null)
     const [prodRes, catRes] = await Promise.all([
       supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false }),
       supabase.from('categories').select('*').order('name'),
     ])
-    if (prodRes.data) setProducts(prodRes.data)
+    if (prodRes.error) {
+      setError(prodRes.error.message)
+    } else if (prodRes.data) {
+      setProducts(prodRes.data)
+    }
     if (catRes.data) setCategories(catRes.data)
     setLoading(false)
   }, [supabase])
@@ -199,6 +205,19 @@ function ProductsContent() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-8">{t('title')}</h1>
         <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={20} /> {tc('loading')}</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-8">{t('title')}</h1>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-700 font-medium mb-2">{tc('error.title')}</p>
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+          <button onClick={loadData} className="btn-primary">{tc('error.retry')}</button>
+        </div>
       </div>
     )
   }
