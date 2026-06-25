@@ -84,7 +84,8 @@ function BlogsContent() {
       if (editId) {
         ;({ error } = await supabase.from('blogs').update(payload).eq('id', editId))
       } else {
-        ;({ error } = await supabase.from('blogs').insert({ ...payload, author_id: null }))
+        const { data: { user } } = await supabase.auth.getUser()
+        ;({ error } = await supabase.from('blogs').insert({ ...payload, author_id: user?.id || null }))
       }
 
       if (error) throw error

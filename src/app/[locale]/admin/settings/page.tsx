@@ -126,6 +126,10 @@ export default function AdminSettingsPage() {
                   <textarea className="input" rows={3} value={settings.address || ''} onChange={(e) => updateSetting('address', e.target.value)} />
                 </div>
                 <div>
+                  <label className="label">{t('fields.whatsappNumber')}</label>
+                  <input type="text" className="input" placeholder="+212649387209" value={settings.whatsapp_number || ''} onChange={(e) => updateSetting('whatsapp_number', e.target.value)} />
+                </div>
+                <div>
                   <label className="label">{t('fields.currency')}</label>
                   <select className="input" value={settings.currency || 'MAD'} onChange={(e) => updateSetting('currency', e.target.value)}>
                     <option value="MAD">MAD (DH)</option>
@@ -142,7 +146,7 @@ export default function AdminSettingsPage() {
                     <option value="en">{t('fields.languageLabels.en')}</option>
                   </select>
                 </div>
-                <button onClick={() => saveTab(['site_name', 'site_description', 'contact_email', 'contact_phone', 'address', 'currency', 'default_language'])} className="btn-primary" disabled={saving}>
+                <button onClick={() => saveTab(['site_name', 'site_description', 'contact_email', 'contact_phone', 'address', 'whatsapp_number', 'currency', 'default_language'])} className="btn-primary" disabled={saving}>
                   {saving ? <><Loader2 className="animate-spin" size={20} /> {t('saving')}</> : <><Save size={20} /> {t('saveChanges')}</>}
                 </button>
               </div>
@@ -169,7 +173,7 @@ export default function AdminSettingsPage() {
                       <input type="password" className="input" placeholder={settings.stripe_webhook_secret_set === 'true' ? t('secretSetHint') : 'whsec_...'} value={settings.stripe_webhook_secret || ''} onChange={(e) => updateSetting('stripe_webhook_secret', e.target.value)} />
                     </div>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <input type="checkbox" className="w-4 h-4" checked={settings.stripe_enabled !== 'false'} onChange={(e) => updateSetting('stripe_enabled', e.target.checked ? 'true' : 'false')} />
                       <span>{t('enableStripe')}</span>
                     </label>
                   </div>
@@ -197,12 +201,12 @@ export default function AdminSettingsPage() {
                       <input type="text" className="input" placeholder={t('fields.paypalWebhookId')} value={settings.paypal_webhook_id || ''} onChange={(e) => updateSetting('paypal_webhook_id', e.target.value)} />
                     </div>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <input type="checkbox" className="w-4 h-4" checked={settings.paypal_enabled !== 'false'} onChange={(e) => updateSetting('paypal_enabled', e.target.checked ? 'true' : 'false')} />
                       <span>{t('enablePaypal')}</span>
                     </label>
                   </div>
                 </div>
-                <button onClick={() => saveTab(['stripe_public_key', 'stripe_secret_key', 'stripe_webhook_secret', 'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id'])} className="btn-primary" disabled={saving}>
+                <button onClick={() => saveTab(['stripe_public_key', 'stripe_secret_key', 'stripe_webhook_secret', 'stripe_enabled', 'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id', 'paypal_enabled'])} className="btn-primary" disabled={saving}>
                   {saving ? <><Loader2 className="animate-spin" size={20} /> {t('saving')}</> : <><Save size={20} /> {t('saveChanges')}</>}
                 </button>
               </div>

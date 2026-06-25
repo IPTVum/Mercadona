@@ -7,10 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(price: number | string, currency: string = 'MAD', locale?: string): string {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price
+  if (isNaN(numPrice)) return '—'
   return new Intl.NumberFormat(locale || 'en-US', {
     style: 'currency',
     currency,
-    minimumFractionDigits: currency === 'MAD' ? 2 : 2,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(numPrice)
 }
@@ -50,8 +51,12 @@ const EXCHANGE_RATES: Record<string, number> = {
 export function convertCurrency(amount: number | string, from: string, to: string): number {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
   if (from === to) return numAmount
-  const amountInMAD = from === 'MAD' ? numAmount : numAmount / (EXCHANGE_RATES[from] || 1)
-  const converted = amountInMAD * (EXCHANGE_RATES[to] || 1)
+  if (!EXCHANGE_RATES[from] || !EXCHANGE_RATES[to]) {
+    console.warn(`Unsupported currency pair: ${from} -> ${to}`)
+    return numAmount
+  }
+  const amountInMAD = from === 'MAD' ? numAmount : numAmount / EXCHANGE_RATES[from]
+  const converted = amountInMAD * EXCHANGE_RATES[to]
   return Math.round(converted * 100) / 100
 }
 
@@ -134,7 +139,9 @@ export function getWhatsAppMessage(productName: string, productPrice: number | s
   const numPrice = typeof productPrice === 'string' ? parseFloat(productPrice) : productPrice
   const lang = (locale || 'en').split('-')[0]
   const m = WHATSAPP_TEMPLATES[lang] || WHATSAPP_TEMPLATES.en
-  const message = `${m.greeting}\n\n${m.product}: ${productName}\n${m.quantity}: ${quantity}\n${m.price}: $${numPrice}\n${m.total}: $${numPrice * quantity}\n\n${m.confirm}`
+  const priceStr = formatPrice(numPrice, 'MAD')
+  const totalStr = formatPrice(numPrice * quantity, 'MAD')
+  const message = `${m.greeting}\n\n${m.product}: ${productName}\n${m.quantity}: ${quantity}\n${m.price}: ${priceStr}\n${m.total}: ${totalStr}\n\n${m.confirm}`
   return encodeURIComponent(message)
 }
 

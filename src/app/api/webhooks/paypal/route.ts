@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { rateLimit } from '@/lib/rate-limit'
+
+export const runtime = 'nodejs'
+export const maxDuration = 30
 
 async function getPayPalSettings() {
   const supabase = createClient(
@@ -84,10 +86,6 @@ async function verifyPayPalWebhook(
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
-  const limited = rateLimit(ip)
-  if (limited) return limited
-
   try {
     const body = await req.text()
 
@@ -120,14 +118,16 @@ export async function POST(req: NextRequest) {
         const paypalId = event.resource.id
 
         if (orderId) {
-          await supabase
+          const { error } = await supabase
             .from('orders')
             .update({
               payment_status: 'paid',
               status: 'confirmed',
               payment_id: paypalId,
+              payment_method: 'paypal',
             })
             .eq('id', orderId)
+          if (error) console.error('Failed to update order on PayPal success:', error)
         }
         break
       }

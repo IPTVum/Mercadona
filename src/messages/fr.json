@@ -32,7 +32,12 @@
     "currency": "DH",
     "free": "Gratuit",
     "chatWithUs": "Discutez avec nous",
-    "whatsappGreeting": "Bonjour ! Je suis intéressé par vos tapis marocains. Pouvez-vous m'aider ?"
+    "whatsappGreeting": "Bonjour ! Je suis intéressé par vos tapis marocains. Pouvez-vous m'aider ?",
+    "featured": "Vedette",
+    "error": {
+      "title": "Une erreur s'est produite",
+      "retry": "Réessayer"
+    }
   },
   "header": {
     "home": "Accueil",
@@ -580,6 +585,7 @@
         "customer": "Client",
         "date": "Date",
         "total": "Total",
+        "price": "Prix",
         "status": "Statut",
         "payment": "Paiement",
         "actions": "Actions"

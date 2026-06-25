@@ -57,7 +57,7 @@ export default function AdminOrdersPage() {
 
   const loadOrders = async () => {
     setError(null)
-    const { data, error: err } = await supabase.from('orders').select('*, profiles(full_name, email)').order('created_at', { ascending: false })
+    const { data, error: err } = await supabase.from('orders').select('*, profiles(full_name, email), order_items(*)').order('created_at', { ascending: false })
     if (err) {
       setError(err.message)
     } else if (data) {
@@ -107,7 +107,7 @@ export default function AdminOrdersPage() {
   const printInvoice = (order: Order) => {
     const w = window.open('', '_blank', 'width=800,height=900')
     if (!w) return
-    const items = (order as any).items || []
+    const items = (order as any).order_items || []
     const addr = order.shipping_address || {}
     w.document.write(`
       <!DOCTYPE html>
@@ -139,7 +139,7 @@ export default function AdminOrdersPage() {
         <div class="info-box"><h3>${escHtml(t('table.status'))}</h3><p>${escHtml(t('table.status'))}: ${escHtml(order.status)}<br>${escHtml(t('table.payment'))}: ${escHtml(order.payment_status)}<br>${escHtml(t('method'))}: ${escHtml(order.payment_method || t('na'))}</p></div>
       </div>
       <table>
-        <thead><tr><th>${escHtml(t('item'))}</th><th>${escHtml(t('qty'))}</th><th>${escHtml(t('table.price') || 'Price')}</th><th>${escHtml(t('table.total'))}</th></tr></thead>
+        <thead><tr><th>${escHtml(t('item'))}</th><th>${escHtml(t('qty'))}</th><th>${escHtml(t('table.price'))}</th><th>${escHtml(t('table.total'))}</th></tr></thead>
         <tbody>
           ${items.length > 0 ? items.map((i: any) => `<tr><td>${escHtml(i.name)}</td><td>${i.quantity}</td><td>${formatPrice(i.price)}</td><td>${formatPrice(i.price * i.quantity)}</td></tr>`).join('') : `<tr><td colspan="4">${escHtml(t('notLoaded'))}</td></tr>`}
         </tbody>

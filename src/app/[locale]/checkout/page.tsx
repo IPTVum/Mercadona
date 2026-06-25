@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useCart } from '@/stores/cart'
 import { formatPrice } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
+import { useHasMounted } from '@/lib/useHasMounted'
 import { CreditCard, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link, useRouter } from '@/i18n/routing'
@@ -15,11 +16,15 @@ export default function CheckoutPage() {
   const tc = useTranslations('cart')
   const locale = useLocale()
   const { items, getSubtotal, couponCode, discount, clearCart } = useCart()
+  const hasMounted = useHasMounted()
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'whatsapp'>('stripe')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [freeShippingMin, setFreeShippingMin] = useState(0)
+  const [shippingCost, setShippingCost] = useState(5.99)
+  const [taxRate, setTaxRate] = useState(0.08)
+  const [paymentSettings, setPaymentSettings] = useState({ stripe: true, paypal: true, whatsapp: true })
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -34,8 +39,8 @@ export default function CheckoutPage() {
 
   const subtotal = getSubtotal()
   const shippingMin = freeShippingMin || 50
-  const shipping = subtotal >= shippingMin ? 0 : 5.99
-  const tax = subtotal * 0.08
+  const shipping = subtotal >= shippingMin ? 0 : shippingCost
+  const tax = subtotal * taxRate
   const total = subtotal + shipping + tax - discount
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,8 +124,13 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId: order.id }),
         })
-        const { url } = await response.json()
-        if (url) window.location.href = url
+        const data = await response.json()
+        if (!response.ok || data.error) {
+          toast.error(data.error || t('errors.orderFailed'))
+          await supabase.from('orders').delete().eq('id', order.id)
+          throw new Error(data.error || 'Stripe checkout failed')
+        }
+        if (data.url) window.location.href = data.url
       } else if (paymentMethod === 'paypal') {
         router.push(`/checkout/paypal?order=${order.id}`)
       }
@@ -133,14 +143,36 @@ export default function CheckoutPage() {
   }
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (hasMounted && items.length === 0) {
       router.push('/cart')
     }
-    supabase.from('settings').select('value').eq('key', 'free_shipping_min').maybeSingle()
-      .then(({ data }) => { if (data?.value) setFreeShippingMin(Number(data.value)) })
-  }, [items.length, router, supabase])
+    if (hasMounted) {
+      supabase.from('settings').select('key, value').in('key', ['free_shipping_min', 'shipping_cost', 'tax_rate', 'stripe_enabled', 'paypal_enabled', 'whatsapp_enabled'])
+        .then(({ data }) => {
+          if (data) {
+            const map: Record<string, string> = {}
+            data.forEach((s: any) => { map[s.key] = String(s.value ?? '') })
+            if (map.free_shipping_min) setFreeShippingMin(Number(map.free_shipping_min))
+            if (map.shipping_cost) setShippingCost(Number(map.shipping_cost))
+            if (map.tax_rate) setTaxRate(Number(map.tax_rate) / 100)
+            const stripeEnabled = map.stripe_enabled !== 'false'
+            const paypalEnabled = map.paypal_enabled !== 'false'
+            const whatsappEnabled = map.whatsapp_enabled !== 'false'
+            setPaymentSettings({ stripe: stripeEnabled, paypal: paypalEnabled, whatsapp: whatsappEnabled })
+            if (!stripeEnabled && paymentMethod === 'stripe') {
+              if (paypalEnabled) setPaymentMethod('paypal')
+              else if (whatsappEnabled) setPaymentMethod('whatsapp')
+            }
+            if (!paypalEnabled && paymentMethod === 'paypal') {
+              if (stripeEnabled) setPaymentMethod('stripe')
+              else if (whatsappEnabled) setPaymentMethod('whatsapp')
+            }
+          }
+        })
+    }
+  }, [items.length, router, supabase, hasMounted])
 
-  if (items.length === 0) {
+  if (!hasMounted || items.length === 0) {
     return null
   }
 
@@ -294,6 +326,7 @@ export default function CheckoutPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <h2 className="text-xl font-bold mb-4">{t('paymentMethod')}</h2>
             <div className="space-y-3">
+              {paymentSettings.stripe && (
               <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                 <input
                   type="radio"
@@ -309,6 +342,8 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500">{t('payment.stripeDesc')}</p>
                 </div>
               </label>
+              )}
+              {paymentSettings.paypal && (
               <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                 <input
                   type="radio"
@@ -326,6 +361,8 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500">{t('payment.paypalDesc')}</p>
                 </div>
               </label>
+              )}
+              {paymentSettings.whatsapp && (
               <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
                 <input
                   type="radio"
@@ -341,6 +378,7 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500">{t('payment.whatsappDesc')}</p>
                 </div>
               </label>
+              )}
             </div>
           </div>
         </div>

@@ -32,7 +32,12 @@
     "currency": "DH",
     "free": "Free",
     "chatWithUs": "Chat with us",
-    "whatsappGreeting": "Hello! I'm interested in your Moroccan rugs. Can you help me?"
+    "whatsappGreeting": "Hello! I'm interested in your Moroccan rugs. Can you help me?",
+    "featured": "Featured",
+    "error": {
+      "title": "Something went wrong",
+      "retry": "Try again"
+    }
   },
   "header": {
     "home": "Home",
@@ -571,6 +576,7 @@
         "customer": "Customer",
         "date": "Date",
         "total": "Total",
+        "price": "Price",
         "status": "Status",
         "payment": "Payment",
         "actions": "Actions"

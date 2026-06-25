@@ -3,8 +3,6 @@
 import { useEffect, useState, useMemo, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
-
 import { createClient } from '@/lib/supabase'
 import { formatPrice, slugify } from '@/lib/utils'
 import { Plus, Search, Edit, Trash2, Eye, ArrowLeft, Loader2, Save, X, Upload, ImageIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
@@ -299,7 +297,7 @@ function ProductsContent() {
                   {form.images.split(',').map((url, i) => {
                     const trimmed = url.trim()
                     return trimmed ? (
-                      <Image key={i} src={trimmed} alt="" width={64} height={64} className="w-16 h-16 object-cover rounded-lg border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <img key={i} src={trimmed} alt="" width={64} height={64} className="w-16 h-16 object-cover rounded-lg border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                     ) : null
                   })}
                 </div>
@@ -324,7 +322,7 @@ function ProductsContent() {
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" className="w-4 h-4" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} />
-                <span>{tc('active')}</span>
+                <span>{tc('featured')}</span>
               </label>
             </div>
           </div>
@@ -383,7 +381,7 @@ function ProductsContent() {
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3 max-w-xs">
                       <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        {product.images?.[0] ? <Image src={product.images[0]} alt="" width={40} height={40} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>}
+                        {product.images?.[0] ? <img src={product.images[0]} alt="" width={40} height={40} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; const parent = (e.target as HTMLImageElement).parentElement; if (parent) parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>' }} /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>}
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium truncate">{product.name}</p>

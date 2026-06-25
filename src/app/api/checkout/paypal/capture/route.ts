@@ -102,15 +102,24 @@ export async function POST(req: NextRequest) {
     })
     const capture = await captureRes.json()
 
-    if (capture.status === 'COMPLETED') {
-      await supabase
-        .from('orders')
-        .update({
-          payment_status: 'paid',
-          status: 'confirmed',
-          payment_id: paypalOrderId,
-        })
-        .eq('id', orderId)
+    if (!captureRes.ok || capture.status !== 'COMPLETED') {
+      console.error('PayPal capture failed:', capture)
+      const errorMsg = capture?.message || capture?.error_description || 'Payment capture failed'
+      return NextResponse.json({ error: errorMsg, status: capture.status || 'UNKNOWN' }, { status: 400 })
+    }
+
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        status: 'confirmed',
+        payment_id: paypalOrderId,
+        payment_method: 'paypal',
+      })
+      .eq('id', orderId)
+
+    if (updateError) {
+      console.error('Failed to update order after PayPal capture:', updateError)
     }
 
     return NextResponse.json({ success: true })

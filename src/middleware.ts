@@ -103,25 +103,13 @@ export async function middleware(request: NextRequest) {
     return applyPendingCookies(NextResponse.redirect(url))
   }
 
-  let defaultLocale = routing.defaultLocale
-  try {
-    const { data: langSetting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'default_language')
-      .maybeSingle()
-    if (langSetting?.value && routing.locales.includes(langSetting.value as any)) {
-      defaultLocale = langSetting.value as typeof routing.defaultLocale
-    }
-  } catch {}
+  const intlResponse = createMiddleware({ ...routing, localeDetection: false })(request)
 
-  const dynamicIntlMiddleware = createMiddleware({
-    ...routing,
-    defaultLocale,
-    localeDetection: false,
+  pendingCookies.forEach(({ name, value, options }) => {
+    intlResponse.cookies.set(name, value, options)
   })
 
-  return dynamicIntlMiddleware(request)
+  return intlResponse
 }
 
 export const config = {

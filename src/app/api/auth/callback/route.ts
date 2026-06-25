@@ -4,13 +4,16 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url)
   const code = requestUrl.searchParams.get('code')
-  const redirectTo = requestUrl.searchParams.get('redirect') || '/profile'
+  const rawRedirect = requestUrl.searchParams.get('redirect') || '/profile'
+  const safeRedirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/profile'
 
   if (code) {
     const supabase = await createServerClientSSR()
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('[auth/callback] exchangeCodeForSession:', { data: !!data.session, error: error?.message, redirectTo })
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return NextResponse.redirect(new URL('/login?error=auth_failed', requestUrl.origin))
+    }
   }
 
-  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+  return NextResponse.redirect(new URL(safeRedirect, requestUrl.origin))
 }

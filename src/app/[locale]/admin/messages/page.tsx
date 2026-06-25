@@ -41,7 +41,7 @@ export default function AdminMessagesPage() {
       if (selected?.id === id) setSelected(null)
       loadMessages()
     } catch (err: any) {
-      toast.error(err.message || t('deleted'))
+      toast.error(err.message || t('deleteError'))
     }
   }
 
@@ -54,7 +54,7 @@ export default function AdminMessagesPage() {
       if (error) throw error
       loadMessages()
     } catch (err: any) {
-      toast.error(err.message || t('deleted'))
+      toast.error(err.message || t('updateError'))
     }
   }
 
@@ -67,7 +67,7 @@ export default function AdminMessagesPage() {
       if (error) throw error
       loadMessages()
     } catch (err: any) {
-      toast.error(err.message || t('deleted'))
+      toast.error(err.message || t('updateError'))
     }
   }
 

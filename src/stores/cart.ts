@@ -27,10 +27,11 @@ export const useCart = create<CartStore>()(
         set((state) => {
           const existing = state.items.find((i) => i.product_id === item.product_id)
           if (existing) {
+            const maxQty = existing.stock ?? 999
             return {
               items: state.items.map((i) =>
                 i.product_id === item.product_id
-                  ? { ...i, quantity: i.quantity + item.quantity }
+                  ? { ...i, quantity: Math.min(i.quantity + item.quantity, maxQty) }
                   : i
               ),
             }
@@ -60,7 +61,7 @@ export const useCart = create<CartStore>()(
       getTotal: () => {
         const subtotal = get().getSubtotal()
         const discount = get().discount
-        return subtotal - discount
+        return Math.max(0, subtotal - discount)
       },
 
       getItemCount: () =>

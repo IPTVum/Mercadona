@@ -19,13 +19,13 @@ export default function LoginPage() {
 
 function LoginForm() {
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirect') || '/profile'
+  const rawRedirect = searchParams.get('redirect') || '/profile'
+  const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/profile'
   const t = useTranslations('auth.login')
   const supabase = useMemo(() => createClient(), [])
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [debugInfo, setDebugInfo] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,7 +35,6 @@ function LoginForm() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setDebugInfo('Step 1: Sending credentials to Supabase...')
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -43,37 +42,16 @@ function LoginForm() {
         password: formData.password,
       })
 
-      if (error) {
-        setDebugInfo(`Auth error: ${error.message}`)
-        throw error
+      if (error) throw error
+
+      if (!data.user || !data.session) {
+        throw new Error('Login failed. Please try again.')
       }
 
-      if (!data.user) {
-        setDebugInfo('No user in response')
-        throw new Error('Login failed - no user returned')
-      }
-
-      if (!data.session) {
-        setDebugInfo('No session in response')
-        throw new Error('Login failed - no session returned')
-      }
-
-      setDebugInfo('Step 2: Login successful! Verifying session...')
-
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setDebugInfo('Session not found after login. Retrying...')
-        throw new Error('Session was not persisted. Please try again.')
-      }
-
-      setDebugInfo('Step 3: Session confirmed. Redirecting...')
-      setTimeout(() => {
-        window.location.href = redirectTo
-      }, 500)
+      window.location.href = redirectTo
     } catch (err: any) {
       console.error('[LOGIN] Error:', err)
       setError(err.message || t('errors.genericError'))
-      setDebugInfo((prev) => prev + '\nError: ' + err.message)
       setLoading(false)
     }
   }
@@ -90,12 +68,6 @@ function LoginForm() {
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
               {error}
-            </div>
-          )}
-
-          {debugInfo && (
-            <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm font-mono whitespace-pre-wrap">
-              {debugInfo}
             </div>
           )}
 

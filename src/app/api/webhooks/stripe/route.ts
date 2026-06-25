@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { rateLimit } from '@/lib/rate-limit'
+
+export const runtime = 'nodejs'
+export const maxDuration = 30
 
 async function getStripeKeys(): Promise<{ secretKey: string; webhookSecret: string }> {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    serviceKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
   const { data } = await supabase
     .from('settings')
@@ -25,17 +28,21 @@ async function getStripeKeys(): Promise<{ secretKey: string; webhookSecret: stri
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
-  const limited = rateLimit(ip)
-  if (limited) return limited
-
   const body = await req.text()
-  const signature = req.headers.get('stripe-signature')!
+  const signature = req.headers.get('stripe-signature')
+
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
+  }
 
   const { secretKey, webhookSecret } = await getStripeKeys()
 
   if (!secretKey) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+  }
+
+  if (!webhookSecret) {
+    return NextResponse.json({ error: 'Stripe webhook secret not configured' }, { status: 500 })
   }
 
   const stripe = new Stripe(secretKey, {
@@ -45,11 +52,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret || process.env.STRIPE_WEBHOOK_SECRET!
-    )
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: any) {
     return NextResponse.json(
       { error: `Webhook Error: ${err.message}` },
@@ -68,14 +71,33 @@ export async function POST(req: NextRequest) {
       const orderId = session.metadata?.orderId
 
       if (orderId) {
-        await supabase
+        const { error } = await supabase
           .from('orders')
           .update({
             payment_status: 'paid',
             status: 'confirmed',
             payment_id: session.id,
+            payment_method: 'stripe',
           })
           .eq('id', orderId)
+        if (error) console.error('Failed to update order on Stripe success:', error)
+      }
+      break
+    }
+
+    case 'checkout.session.expired': {
+      const session = event.data.object as Stripe.Checkout.Session
+      const orderId = session.metadata?.orderId
+
+      if (orderId) {
+        const { error } = await supabase
+          .from('orders')
+          .update({
+            payment_status: 'failed',
+            status: 'cancelled',
+          })
+          .eq('id', orderId)
+        if (error) console.error('Failed to update order on Stripe expiry:', error)
       }
       break
     }
@@ -85,12 +107,13 @@ export async function POST(req: NextRequest) {
       const orderId = paymentIntent.metadata?.orderId
 
       if (orderId) {
-        await supabase
+        const { error } = await supabase
           .from('orders')
           .update({
             payment_status: 'failed',
           })
           .eq('id', orderId)
+        if (error) console.error('Failed to update order on payment failure:', error)
       }
       break
     }
@@ -100,19 +123,20 @@ export async function POST(req: NextRequest) {
       const orderId = charge.metadata?.orderId
 
       if (orderId) {
-        await supabase
+        const { error } = await supabase
           .from('orders')
           .update({
             payment_status: 'refunded',
             status: 'refunded',
           })
           .eq('id', orderId)
+        if (error) console.error('Failed to update order on refund:', error)
 
         await supabase.from('refund_logs').insert({
           order_id: orderId,
           amount: charge.amount_refunded / 100,
           reason: 'Customer refund',
-          stripe_refund_id: charge.id,
+          stripe_refund_id: charge.refunds?.data?.[0]?.id ?? charge.id,
         })
       }
       break

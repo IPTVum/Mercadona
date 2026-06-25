@@ -23,14 +23,19 @@ export async function generateMetadata({
   params: { locale: string }
 }): Promise<Metadata> {
   let siteName = 'WebStore'
+  let siteDescription = 'Shop the latest products at unbeatable prices. Quality guaranteed.'
   try {
     const supabase = await createServerClientSSR()
     const { data } = await supabase
       .from('settings')
-      .select('value')
-      .eq('key', 'site_name')
-      .maybeSingle()
-    if (data?.value) siteName = String(data.value)
+      .select('key, value')
+      .in('key', ['site_name', 'site_description'])
+    if (data) {
+      data.forEach((s: any) => {
+        if (s.key === 'site_name' && s.value) siteName = String(s.value)
+        if (s.key === 'site_description' && s.value) siteDescription = String(s.value)
+      })
+    }
   } catch {}
 
   return {
@@ -39,8 +44,7 @@ export async function generateMetadata({
       default: `${siteName} - Your One-Stop Online Shop`,
       template: `%s | ${siteName}`,
     },
-    description:
-      'Shop the latest products at unbeatable prices. Quality guaranteed.',
+    description: siteDescription,
     keywords: ['ecommerce', 'online shopping', 'deals', 'products'],
     authors: [{ name: siteName }],
     creator: siteName,

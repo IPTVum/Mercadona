@@ -6,11 +6,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const supabase = await createServerClientSSR()
 
-  const [products, blogs, pages] = await Promise.all([
+  const [products, blogs, pages] = await Promise.allSettled([
     supabase.from('products').select('slug, updated_at').eq('is_active', true),
     supabase.from('blogs').select('slug, updated_at').eq('is_published', true),
     supabase.from('pages').select('slug, updated_at').eq('is_published', true),
-  ])
+  ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : { data: null }))
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },

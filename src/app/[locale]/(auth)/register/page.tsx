@@ -12,7 +12,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [debugInfo, setDebugInfo] = useState('')
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -23,7 +22,6 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setDebugInfo('Step 1: Creating account...')
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -36,17 +34,11 @@ export default function RegisterPage() {
         },
       })
 
-      if (error) {
-        setDebugInfo(`Auth error: ${error.message}`)
-        throw error
-      }
+      if (error) throw error
 
       if (!data.user) {
-        setDebugInfo('No user in response')
-        throw new Error('Registration failed - no user returned')
+        throw new Error('Registration failed. Please try again.')
       }
-
-      setDebugInfo('Step 2: User created. Creating profile...')
 
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
@@ -56,25 +48,17 @@ export default function RegisterPage() {
       })
 
       if (profileError) {
-        setDebugInfo((prev) => prev + `\nProfile warning: ${profileError.message}`)
         console.warn('[REGISTER] Profile insert error:', profileError)
-      } else {
-        setDebugInfo((prev) => prev + '\nProfile created.')
       }
 
       if (data.session) {
-        setDebugInfo((prev) => prev + '\nStep 3: Session active. Redirecting...')
-        setTimeout(() => {
-          window.location.href = '/profile'
-        }, 500)
+        window.location.href = '/profile'
       } else {
-        setDebugInfo((prev) => prev + '\nNo active session - email verification may be required. Check your email.')
         setLoading(false)
       }
     } catch (err: any) {
       console.error('[REGISTER] Error:', err)
       setError(err.message || t('errors.genericError'))
-      setDebugInfo((prev) => prev + '\nError: ' + err.message)
       setLoading(false)
     }
   }
@@ -91,12 +75,6 @@ export default function RegisterPage() {
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
               {error}
-            </div>
-          )}
-
-          {debugInfo && (
-            <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm font-mono whitespace-pre-wrap">
-              {debugInfo}
             </div>
           )}
 

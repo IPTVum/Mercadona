@@ -46,8 +46,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   const handleWishlist = () => {
+    const wasInWishlist = isInWishlist(product.id)
     toggleItem(wishlistItem)
-    toast.success(isInWishlist(product.id) ? 'Removed from wishlist' : 'Added to wishlist')
+    toast.success(wasInWishlist ? t('removeFromWishlist') : t('addToWishlist'))
   }
 
   const hasMounted = useHasMounted()
@@ -80,12 +81,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{discount}%
             </span>
           )}
-          {!product.is_active && (
+          {!inStock && (
             <span className="bg-gray-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
               {t('outOfStock')}
             </span>
           )}
-          {product.is_active && product.stock !== null && product.stock <= 5 && product.stock > 0 && (
+          {inStock && product.stock !== null && product.stock <= 5 && product.stock > 0 && (
             <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
               {t('lowStock', { count: product.stock })}
             </span>

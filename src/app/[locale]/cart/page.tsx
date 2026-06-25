@@ -18,15 +18,23 @@ export default function CartPage() {
   const [couponInput, setCouponInput] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [freeShippingMin, setFreeShippingMin] = useState(0)
+  const [shippingCost, setShippingCost] = useState(5.99)
   const supabase = useMemo(() => createClient(), [])
   const subtotal = getSubtotal()
   const shippingMin = freeShippingMin || 50
-  const shipping = subtotal >= shippingMin ? 0 : 5.99
+  const shipping = subtotal >= shippingMin ? 0 : shippingCost
   const total = getTotal() + shipping
 
   useEffect(() => {
-    supabase.from('settings').select('value').eq('key', 'free_shipping_min').maybeSingle()
-      .then(({ data }) => { if (data?.value) setFreeShippingMin(Number(data.value)) })
+    supabase.from('settings').select('key, value').in('key', ['free_shipping_min', 'shipping_cost'])
+      .then(({ data }) => {
+        if (data) {
+          data.forEach((s: any) => {
+            if (s.key === 'free_shipping_min' && s.value) setFreeShippingMin(Number(s.value))
+            if (s.key === 'shipping_cost' && s.value) setShippingCost(Number(s.value))
+          })
+        }
+      })
   }, [supabase])
 
   const whatsappMessage = items

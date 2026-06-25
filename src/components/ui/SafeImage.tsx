@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 
 interface SafeImageProps {
-  src: string
+  src: string | null | undefined
   alt: string
   fill?: boolean
   priority?: boolean
