@@ -48,6 +48,65 @@ export default function CartPage() {
     getWhatsAppMessage('Cart Order', total, 1, locale)
   )
 
+  const [whatsappLoading, setWhatsappLoading] = useState(false)
+
+  const handleWhatsAppOrder = async () => {
+    setWhatsappLoading(true)
+    try {
+      let userId: string | null = null
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        userId = user?.id || null
+      } catch {}
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          email: '',
+          status: 'pending',
+          payment_status: 'unpaid',
+          payment_method: 'whatsapp',
+          subtotal,
+          shipping_cost: shipping,
+          tax: 0,
+          discount,
+          total,
+          currency: 'MAD',
+        })
+        .select()
+        .single()
+
+      if (orderError || !order) throw orderError
+
+      const orderItems = items.map((item) => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        total: item.price * item.quantity,
+        image: item.image,
+      }))
+
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItems)
+      if (itemsError) {
+        await supabase.from('orders').delete().eq('id', order.id)
+        throw itemsError
+      }
+
+      const message = `New Order #${order.id.slice(0, 8)}\n\n${items.map((i) => `${i.name} x${i.quantity} - ${formatPrice(i.price * i.quantity, 'MAD', locale)}`).join('\n')}\n\nTotal: ${formatPrice(total, 'MAD', locale)}`
+      const url = `https://wa.me/${(whatsappNumber || '1234567890').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`
+      window.open(url, '_blank')
+      clearCart()
+      toast.success('Order placed via WhatsApp!')
+    } catch (err: any) {
+      toast.error('Failed to create order. Please try again.')
+    } finally {
+      setWhatsappLoading(false)
+    }
+  }
+
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return
     setCouponLoading(true)
@@ -240,15 +299,17 @@ export default function CartPage() {
             >
               {t('checkout')} <ArrowRight size={20} />
             </Link>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 w-full btn-whatsapp justify-center gap-2"
+            <button
+              onClick={handleWhatsAppOrder}
+              disabled={whatsappLoading}
+              className="mt-3 w-full btn-whatsapp justify-center gap-2 disabled:opacity-50"
             >
-              <MessageCircle size={20} />
-              {t('whatsappOrder')}
-            </a>
+              {whatsappLoading ? (
+                <><span className="animate-spin">⏳</span> Creating order...</>
+              ) : (
+                <><MessageCircle size={20} /> {t('whatsappOrder')}</>
+              )}
+            </button>
             {subtotal < shippingMin && (
               <p className="mt-4 text-sm text-gray-500 text-center">
                 {t('freeShippingProgress', { amount: formatPrice(shippingMin - subtotal, 'MAD', locale) })}
