@@ -235,41 +235,121 @@ export default async function HomePage() {
       {coupons.length > 0 ? (
         <section className="py-16">
           <div className="container-custom">
-            <div className="bg-gradient-to-r from-accent-600 to-primary-600 rounded-2xl p-8 md:p-12 text-white relative overflow-hidden">
-              <div className="absolute right-0 top-0 opacity-10"><Tag size={200} /></div>
-              <div className="max-w-xl relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-0.5 bg-white/20 text-xs font-medium rounded-full">{t('coupons.limitedOffer')}</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-display font-bold">
-                  {coupons[0].discount_type === 'percentage'
-                    ? t('coupons.getPercentOff', { value: coupons[0].discount_value })
-                    : t('coupons.saveAmount', { value: coupons[0].discount_value })}
-                </h2>
-                <p className="mt-4 text-lg text-accent-100">
-                  {coupons[0].description || t('coupons.useCoupon')}
-                </p>
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg font-mono font-bold text-lg tracking-wider border border-dashed border-white/40">
-                    {coupons[0].code}
-                  </span>
-                  <span className="text-sm text-accent-200">
-                    {coupons[0].expires_at ? t('coupons.expires', { date: formatDate(coupons[0].expires_at) }) : t('coupons.noExpiration')}
-                  </span>
-                </div>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link href="/shop" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-accent-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                    {t('hero.shopNow')} <ArrowRight size={20} />
-                  </Link>
-                  {coupons.length > 1 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-accent-200">{t('coupons.moreCodes')}</span>
-                      {coupons.slice(1).map((c) => (
-                        <span key={c.id} className="px-2 py-1 bg-white/10 text-xs font-mono rounded border border-dashed border-white/20">{c.code}</span>
-                      ))}
+            <div className="relative bg-gradient-to-br from-accent-600 via-primary-600 to-primary-700 animate-gradient rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
+              {/* Decorative background elements */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full animate-float-slow" />
+                <div className="absolute -bottom-32 -left-10 w-96 h-96 bg-white/5 rounded-full animate-float" />
+                <div className="absolute top-1/3 right-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+                {/* Sparkle decorations */}
+                <Sparkles size={24} className="absolute top-8 right-1/4 text-white/20 animate-pulse" />
+                <Sparkles size={16} className="absolute bottom-12 right-1/3 text-white/15 animate-pulse" style={{ animationDelay: '0.5s' } as any} />
+                <Sparkles size={20} className="absolute top-1/2 right-10 text-white/10 animate-pulse" style={{ animationDelay: '1s' } as any} />
+              </div>
+
+              <div className="grid md:grid-cols-2 items-center relative z-10">
+                {/* Left: Offer details */}
+                <div className="p-8 md:p-12 lg:p-14 animate-slide-in-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-semibold uppercase tracking-wider border border-white/20">
+                    <Sparkles size={14} className="text-yellow-300 animate-pulse" />
+                    {t('coupons.limitedOffer')}
+                  </div>
+
+                  <h2 className="mt-5 text-4xl md:text-5xl lg:text-6xl font-display font-black text-white leading-[1.05]">
+                    {coupons[0].discount_type === 'percentage'
+                      ? t('coupons.getPercentOff', { value: coupons[0].discount_value })
+                      : t('coupons.saveAmount', { value: coupons[0].discount_value })}
+                  </h2>
+
+                  <p className="mt-4 text-lg text-white/80 max-w-md">
+                    {coupons[0].description || t('coupons.useCoupon')}
+                  </p>
+
+                  {/* Coupon code + expiry */}
+                  <div className="mt-7 flex flex-wrap items-center gap-4">
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-white/10 rounded-xl blur-md group-hover:bg-white/20 transition-colors" />
+                      <div className="relative px-5 py-3 bg-white/15 backdrop-blur-md rounded-xl border-2 border-dashed border-white/40">
+                        <p className="text-[10px] uppercase tracking-widest text-white/60 font-medium">Coupon Code</p>
+                        <p className="font-mono font-black text-2xl tracking-[0.2em] text-white">
+                          {coupons[0].code}
+                        </p>
+                      </div>
                     </div>
-                  )}
+                    <div className="flex items-center gap-1.5 text-sm text-white/70">
+                      <Tag size={14} />
+                      {coupons[0].expires_at
+                        ? t('coupons.expires', { date: formatDate(coupons[0].expires_at) })
+                        : t('coupons.noExpiration')}
+                    </div>
+                  </div>
+
+                  {/* CTA + more codes */}
+                  <div className="mt-8 flex flex-wrap items-center gap-4">
+                    <Link
+                      href="/shop"
+                      className="group inline-flex items-center gap-2 px-7 py-3.5 bg-white text-accent-700 rounded-xl font-bold text-lg hover:bg-yellow-50 transition-all hover:scale-105 hover:shadow-xl hover:shadow-white/20"
+                    >
+                      {t('hero.shopNow')}
+                      <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    {coupons.length > 1 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-white/60">{t('coupons.moreCodes')}</span>
+                        {coupons.slice(1).map((c, i) => (
+                          <span
+                            key={c.id}
+                            className="px-2.5 py-1 bg-white/10 backdrop-blur-sm text-xs font-mono font-semibold rounded-lg border border-dashed border-white/25 hover:bg-white/15 transition-colors"
+                            style={{ animationDelay: `${i * 0.1}s` }}
+                          >
+                            {c.code}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Right: Giant discount visual */}
+                <div className="relative h-full min-h-[280px] flex items-center justify-center p-8 md:p-12 animate-slide-in-right">
+                  {/* Rotating ring decoration */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-64 h-64 md:w-72 md:h-72 border-2 border-dashed border-white/15 rounded-full animate-spin" style={{ animationDuration: '30s' }} />
+                    <div className="absolute w-80 h-80 md:w-96 md:h-96 border border-white/5 rounded-full" />
+                  </div>
+
+                  {/* Giant discount badge */}
+                  <div className="relative animate-float">
+                    <div className="absolute inset-0 bg-white/10 rounded-full blur-2xl animate-pulse" />
+                    <div className="relative w-48 h-48 md:w-56 md:h-56 bg-white rounded-full flex flex-col items-center justify-center shadow-2xl">
+                      <div className="absolute inset-2 border-2 border-dashed border-accent-300/40 rounded-full" />
+                      <div className="absolute -top-3 -right-3 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                        <Tag size={18} className="text-accent-700" />
+                      </div>
+                      {coupons[0].discount_type === 'percentage' ? (
+                        <>
+                          <span className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-accent-600 to-primary-600 leading-none">
+                            {coupons[0].discount_value}
+                          </span>
+                          <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-accent-600 to-primary-600 -mt-1">%</span>
+                          <span className="mt-1 text-sm font-bold uppercase tracking-wider text-gray-500">OFF</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-accent-600 to-primary-600 leading-none">
+                            {coupons[0].discount_value}
+                          </span>
+                          <span className="text-lg font-bold text-gray-500">DH OFF</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom shimmer bar */}
+              <div className="h-1 bg-white/10 overflow-hidden">
+                <div className="h-full w-1/3 bg-white/40 animate-shimmer" />
               </div>
             </div>
           </div>
@@ -277,12 +357,18 @@ export default async function HomePage() {
       ) : (
         <section className="py-16">
           <div className="container-custom">
-            <div className="bg-gradient-to-r from-accent-600 to-primary-600 rounded-2xl p-8 md:p-12 text-white">
-              <div className="max-w-xl">
-                <h2 className="text-3xl md:text-4xl font-display font-bold">{t('coupons.specialOffer')}</h2>
-                <p className="mt-4 text-lg text-accent-100">{t('coupons.checkBack')}</p>
-                <Link href="/shop" className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-white text-accent-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                  {t('hero.shopNow')} <ArrowRight size={20} />
+            <div className="relative bg-gradient-to-br from-accent-600 via-primary-600 to-primary-700 animate-gradient rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full animate-float-slow" />
+              <div className="absolute -bottom-32 -left-10 w-96 h-96 bg-white/5 rounded-full animate-float" />
+              <div className="relative z-10 p-8 md:p-12 lg:p-14 max-w-xl animate-slide-in-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-semibold uppercase tracking-wider border border-white/20">
+                  <Sparkles size={14} className="text-yellow-300" />
+                  {t('coupons.specialOffer')}
+                </div>
+                <h2 className="mt-5 text-3xl md:text-4xl lg:text-5xl font-display font-bold text-white">{t('coupons.specialOffer')}</h2>
+                <p className="mt-4 text-lg text-white/80">{t('coupons.checkBack')}</p>
+                <Link href="/shop" className="mt-6 group inline-flex items-center gap-2 px-7 py-3.5 bg-white text-accent-700 rounded-xl font-bold text-lg hover:bg-yellow-50 transition-all hover:scale-105">
+                  {t('hero.shopNow')} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
