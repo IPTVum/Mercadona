@@ -4,7 +4,15 @@ import { getLocale } from 'next-intl/server'
 
 export async function requireAdmin() {
   const supabase = await createServerClientSSR()
-  const { data: { user } } = await supabase.auth.getUser()
+
+  let user
+  try {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    user = authUser
+  } catch {
+    const locale = await getLocale()
+    redirect(`/${locale}/login`)
+  }
 
   if (!user) {
     const locale = await getLocale()

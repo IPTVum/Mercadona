@@ -54,8 +54,12 @@ export default function Header() {
     fetchCategories()
 
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch {
+        setUser(null)
+      }
     }
     getUser()
 

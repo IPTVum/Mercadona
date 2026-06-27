@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { Home } from 'lucide-react'
@@ -13,6 +14,10 @@ export default function ErrorPage({
 }) {
   const t = useTranslations('error')
 
+  useEffect(() => {
+    console.error('[admin] error boundary:', error)
+  }, [error])
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="text-center max-w-md">
@@ -23,6 +28,18 @@ export default function ErrorPage({
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('title')}</h2>
         <p className="text-gray-600 mb-6">{t('description')}</p>
+
+        {(error?.message || error?.digest) && (
+          <div className="mb-6 text-left bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto">
+            {error?.message && (
+              <p className="text-sm text-red-600 font-mono break-all">{error.message}</p>
+            )}
+            {error?.digest && (
+              <p className="text-xs text-gray-400 font-mono mt-2">digest: {error.digest}</p>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button onClick={reset} className="btn-primary">
             {t('retry')}

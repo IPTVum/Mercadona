@@ -36,32 +36,36 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/login')
+          return
+        }
+
+        const [
+          { data: profileData },
+          { data: ordersData },
+        ] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).single(),
+          supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        ])
+
+        if (profileData) {
+          setProfile(profileData)
+          setProfileForm({ fullName: profileData.full_name || '', phone: profileData.phone || '' })
+          setShippingAddress(profileData.shipping_address || {})
+          setBillingAddress(profileData.billing_address || {})
+        }
+        if (ordersData) setOrders(ordersData)
+
+        supabase.from('settings').select('value').eq('key', 'site_name').maybeSingle()
+          .then(({ data }) => { if (data?.value) setSiteName(String(data.value)) })
+
+        setLoading(false)
+      } catch {
         router.push('/login')
-        return
       }
-
-      const [
-        { data: profileData },
-        { data: ordersData },
-      ] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      ])
-
-      if (profileData) {
-        setProfile(profileData)
-        setProfileForm({ fullName: profileData.full_name || '', phone: profileData.phone || '' })
-        setShippingAddress(profileData.shipping_address || {})
-        setBillingAddress(profileData.billing_address || {})
-      }
-      if (ordersData) setOrders(ordersData)
-
-      supabase.from('settings').select('value').eq('key', 'site_name').maybeSingle()
-        .then(({ data }) => { if (data?.value) setSiteName(String(data.value)) })
-
-      setLoading(false)
     }
     fetchData()
   }, [supabase, router])

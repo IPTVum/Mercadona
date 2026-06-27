@@ -42,9 +42,15 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user: any = null
+  try {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    user = authUser
+  } catch {
+    // Token refresh failed or other auth error — treat as logged out
+  }
 
-  const pathWithoutLocale = pathname.replace(/^\/(en|fr|ar)(\/|$)/, '/$2').replace(/\/$/, '') || '/'
+  const pathWithoutLocale = pathname.replace(/^\/(en|fr|ar)(\/|$)/, '$2').replace(/\/$/, '') || '/'
 
   const isAdminRoute = pathWithoutLocale.startsWith('/admin')
   const isAuthRoute =
