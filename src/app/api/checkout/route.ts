@@ -22,9 +22,12 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerClientSSR()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    let userId: string | null = null
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id || null
+    } catch {
+      // Guest checkout or expired session — allow if order exists
     }
 
     const { orderId } = await req.json()
@@ -33,14 +36,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 })
     }
 
-    const { data: order } = await supabase
+    let orderQuery = supabase
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .eq('user_id', user.id)
-      .single()
 
-    if (!order) {
+    if (userId) {
+      orderQuery = orderQuery.eq('user_id', userId)
+    }
+
+    const { data: order, error: orderError } = await orderQuery.single()
+
+    if (!order || orderError) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 

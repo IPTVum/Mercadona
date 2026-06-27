@@ -68,11 +68,16 @@ export default function PayPalCheckoutContent() {
             return data.paypalOrderId
           },
           onApprove: async (data: any) => {
-            await fetch('/api/checkout/paypal/capture', {
+            const captureRes = await fetch('/api/checkout/paypal/capture', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ orderId, paypalOrderId: data.orderID }),
             })
+            const captureData = await captureRes.json()
+            if (!captureRes.ok || captureData.error) {
+              setError(captureData.error || 'Payment capture failed. Please contact support.')
+              return
+            }
             router.push(`/success?order=${orderId}`)
           },
           onError: () => {

@@ -8,6 +8,7 @@ import type { Product } from '@/types'
 import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
 import { useHasMounted } from '@/lib/useHasMounted'
+import { useWhatsappNumber } from '@/lib/useWhatsappNumber'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/routing'
@@ -21,6 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart()
   const { toggleItem, isInWishlist } = useWishlist()
   const discount = calculateDiscount(product.price, product.compare_price)
+  const whatsappNumber = useWhatsappNumber()
 
   const wishlistItem = {
     id: product.id,
@@ -166,7 +168,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
         <a
           href={getWhatsAppUrl(
-            process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+1234567890',
+            whatsappNumber || '+1234567890',
             getWhatsAppMessage(product.name, product.price)
           )}
           target="_blank"

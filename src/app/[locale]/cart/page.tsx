@@ -8,6 +8,7 @@ import { useCart } from '@/stores/cart'
 import { formatPrice, getWhatsAppUrl, getWhatsAppMessage } from '@/lib/utils'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
+import { useWhatsappNumber } from '@/lib/useWhatsappNumber'
 import type { Coupon } from '@/types'
 import { Link } from '@/i18n/routing'
 
@@ -20,6 +21,7 @@ export default function CartPage() {
   const [freeShippingMin, setFreeShippingMin] = useState(0)
   const [shippingCost, setShippingCost] = useState(5.99)
   const supabase = useMemo(() => createClient(), [])
+  const whatsappNumber = useWhatsappNumber()
   const subtotal = getSubtotal()
   const shippingMin = freeShippingMin || 50
   const shipping = subtotal >= shippingMin ? 0 : shippingCost
@@ -42,7 +44,7 @@ export default function CartPage() {
     .join('\n')
 
   const whatsappUrl = getWhatsAppUrl(
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+1234567890',
+    whatsappNumber || '+1234567890',
     getWhatsAppMessage('Cart Order', total, 1, locale)
   )
 

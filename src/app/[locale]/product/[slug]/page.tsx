@@ -126,14 +126,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const thf = await getTranslations('home')
 
   try {
-    const [relatedProducts, reviews] = await Promise.all([
+    const [relatedProducts, reviews, whatsappSetting] = await Promise.all([
       getRelatedProducts(product.id, product.category_id),
       getProductReviews(product.id),
+      (async () => {
+        const supabase = await createServerClientSSR()
+        const { data } = await supabase.from('settings').select('value').eq('key', 'whatsapp_number').maybeSingle()
+        return data?.value as string || ''
+      })(),
     ])
 
     const discount = calculateDiscount(product.price, product.compare_price)
     const whatsappUrl = getWhatsAppUrl(
-      process.env.WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+1234567890',
+      whatsappSetting || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+1234567890',
       getWhatsAppMessage(product.name, product.price)
     )
     const avgRating = reviews.length > 0

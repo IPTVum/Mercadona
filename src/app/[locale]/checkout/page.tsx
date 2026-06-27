@@ -6,6 +6,7 @@ import { useCart } from '@/stores/cart'
 import { formatPrice } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
 import { useHasMounted } from '@/lib/useHasMounted'
+import { useWhatsappNumber } from '@/lib/useWhatsappNumber'
 import { CreditCard, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link, useRouter } from '@/i18n/routing'
@@ -18,6 +19,7 @@ export default function CheckoutPage() {
   const { items, getSubtotal, couponCode, discount, clearCart } = useCart()
   const hasMounted = useHasMounted()
   const supabase = useMemo(() => createClient(), [])
+  const whatsappNumber = useWhatsappNumber()
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'whatsapp'>('stripe')
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -115,7 +117,7 @@ export default function CheckoutPage() {
 
       if (paymentMethod === 'whatsapp') {
         const message = `New Order #${order.id.slice(0, 8)}\n\n${items.map((i) => `${i.name} x${i.quantity} - ${formatPrice(i.price * i.quantity, 'MAD', locale)}`).join('\n')}\n\nTotal: ${formatPrice(total, 'MAD', locale)}\n\nShipping to:\n${formData.fullName}\n${formData.address}\n${formData.city}, ${formData.state} ${formData.zipCode}`
-        window.open(`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '1234567890'}?text=${encodeURIComponent(message)}`, '_blank')
+        window.open(`https://wa.me/${(whatsappNumber || '1234567890').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank')
         clearCart()
         router.push(`/success?order=${order.id}`)
       } else if (paymentMethod === 'stripe') {
